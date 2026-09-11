@@ -55,9 +55,9 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>♥</text></svg>">
 
   <!-- Stylesheets -->
-  <link rel="stylesheet" href="css/style.css?v=8">
-  <link rel="stylesheet" href="css/cards.css?v=8">
-  <link rel="stylesheet" href="css/animations.css?v=8">
+  <link rel="stylesheet" href="css/style.css?v=19">
+  <link rel="stylesheet" href="css/cards.css?v=19">
+  <link rel="stylesheet" href="css/animations.css?v=19">
 </head>
 <body>
 
@@ -101,10 +101,7 @@
           <span class="player-name">North</span>
           <span class="player-score-badge" id="badge-score-north">0 pts</span>
         </div>
-        <div class="bot-hand">
-          <div class="card face-down"></div>
-        </div>
-        <span class="bot-card-count" id="count-north">13 cards</span>
+        <div class="bot-hand bot-hand-north" id="bot-hand-2"></div>
         <div class="station-turn-arrow arrow-north" title="North's turn">▲</div>
       </section>
 
@@ -115,10 +112,7 @@
           <span class="player-name">West</span>
           <span class="player-score-badge" id="badge-score-west">0 pts</span>
         </div>
-        <div class="bot-hand">
-          <div class="card face-down"></div>
-        </div>
-        <span class="bot-card-count" id="count-west">13 cards</span>
+        <div class="bot-hand bot-hand-west" id="bot-hand-1"></div>
         <div class="station-turn-arrow arrow-west" title="West's turn">◀</div>
       </section>
 
@@ -130,10 +124,7 @@
           <span class="player-name">East</span>
           <span class="player-score-badge" id="badge-score-east">0 pts</span>
         </div>
-        <div class="bot-hand">
-          <div class="card face-down"></div>
-        </div>
-        <span class="bot-card-count" id="count-east">13 cards</span>
+        <div class="bot-hand bot-hand-east" id="bot-hand-3"></div>
       </section>
 
       <!-- CENTER TRICK ARENA -->
@@ -332,15 +323,15 @@
   </div>
 
   <!-- Application Scripts in Dependency Order -->
-  <script src="js/deck.js?v=8"></script>
-  <script src="js/trick.js?v=8"></script>
-  <script src="js/scoring.js?v=8"></script>
-  <script src="js/ai-common.js?v=8"></script>
-  <script src="js/ai-easy.js?v=8"></script>
-  <script src="js/ai-normal.js?v=8"></script>
-  <script src="js/ai-hard.js?v=8"></script>
-  <script src="js/game.js?v=8"></script>
-  <script src="js/ui.js?v=8"></script>
+  <script src="js/deck.js?v=19"></script>
+  <script src="js/trick.js?v=19"></script>
+  <script src="js/scoring.js?v=19"></script>
+  <script src="js/ai-common.js?v=19"></script>
+  <script src="js/ai-easy.js?v=19"></script>
+  <script src="js/ai-normal.js?v=19"></script>
+  <script src="js/ai-hard.js?v=19"></script>
+  <script src="js/game.js?v=19"></script>
+  <script src="js/ui.js?v=19"></script>
 
   <!-- Game Bootstrap -->
   <script>

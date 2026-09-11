@@ -274,6 +274,9 @@
       if (!card || !this.hands[playerIndex]) return;
       if (!this.currentTrick || this.currentTrick.isComplete) return;
 
+      // Find the card's exact position in the sorted hand before removal
+      const cardIndex = this.hands[playerIndex].cards.findIndex(c => c.equals(card));
+
       // Remove from player's hand
       this.hands[playerIndex].removeCard(card);
 
@@ -290,7 +293,8 @@
       this.trigger('onCardPlayed', {
         player: playerIndex,
         card: card,
-        trick: this.currentTrick
+        trick: this.currentTrick,
+        cardIndex: cardIndex
       });
       this.trigger('onHandUpdated', this.hands);
 

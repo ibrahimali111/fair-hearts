@@ -154,6 +154,11 @@
         2: document.getElementById('count-north'),
         3: document.getElementById('count-east')
       };
+      this.botHandContainers = {
+        1: document.getElementById('bot-hand-1'),
+        2: document.getElementById('bot-hand-2'),
+        3: document.getElementById('bot-hand-3')
+      };
 
       // Header & Badges
       this.roundBadge = document.getElementById('badge-round');
@@ -216,7 +221,16 @@
     bindGameEvents() {
       this.game.setCallback('onHandUpdated', (hands) => {
         this.renderHumanHand(hands[0]);
-        this.updateBotCardCounts(hands);
+        // Delay bot hand re-render during trick play so the departing card flies smoothly before hand contracts
+        if (this.game && this.game.currentTrick && this.game.currentTrick.plays.length > 0) {
+          setTimeout(() => {
+            this.renderBotHands(hands);
+            this.updateBotCardCounts(hands);
+          }, 300);
+        } else {
+          this.renderBotHands(hands);
+          this.updateBotCardCounts(hands);
+        }
       });
 
       this.game.setCallback('onTurnChange', ({ player, trickNumber, legalPlays }) => {
@@ -225,9 +239,8 @@
         this.updateCardLegalStates();
       });
 
-      this.game.setCallback('onCardPlayed', ({ player, card, trick }) => {
-        this.sound.playCardSnap();
-        this.renderTrickCard(player, card);
+      this.game.setCallback('onCardPlayed', ({ player, card, trick, cardIndex }) => {
+        this.animateCardPlay(player, card, cardIndex);
       });
 
       this.game.setCallback('onTrickComplete', ({ trick, winner, points }) => {
@@ -268,6 +281,7 @@
 
       this.game.setCallback('onPassPhaseComplete', ({ passed, received, direction }) => {
         this.passPanel.classList.remove('visible');
+        this.animatePassExchange(passed, received, direction);
         const rList = received.map(c => c.toString()).join(', ');
         this.showToast(`Received from ${direction}: ${rList}`);
         this.sound.playCardSlide();
@@ -433,57 +447,42 @@
       if (!hand || !hand.cards) return;
 
       const totalCards = hand.cards.length;
-      // Staggered two-tier layout (matching mobile card game UI: e.g. 6 top, 7 bottom)
-      if (totalCards > 6) {
-        const splitIndex = Math.floor(totalCards / 2);
-        const topCards = hand.cards.slice(0, splitIndex);
-        const bottomCards = hand.cards.slice(splitIndex);
 
-        const rowTop = document.createElement('div');
-        rowTop.className = 'hand-row row-top';
+      // Single curved fan arc layout (matching reference game)
+      const fanContainer = document.createElement('div');
+      fanContainer.className = 'hand-row row-fan';
 
-        const rowBottom = document.createElement('div');
-        rowBottom.className = 'hand-row row-bottom';
+      // Fan arc parameters: calibrated curve that stays within viewport bounds on phone and desktop
+      const isMobile = window.innerWidth <= 768;
+      const maxRotation = totalCards > 6 ? (isMobile ? 28 : 42) : (isMobile ? 14 : 22);
+      const liftAmount = totalCards > 6 ? (isMobile ? 12 : 24) : (isMobile ? 6 : 12);
 
-        topCards.forEach((card, index) => {
-          const cardEl = this.createCardDom(card);
-          cardEl.classList.add('anim-deal', 'in-row-top');
-          cardEl.style.zIndex = index + 1;
-          cardEl.addEventListener('click', () => {
-            this.handleHumanCardClick(card);
-          });
-          rowTop.appendChild(cardEl);
+      hand.cards.forEach((card, index) => {
+        const cardEl = this.createCardDom(card);
+        cardEl.classList.add('anim-deal');
+
+        // Calculate fan position: center card is index (totalCards-1)/2
+        const center = (totalCards - 1) / 2;
+        const offset = index - center; // negative = left, positive = right
+        const normalizedOffset = center > 0 ? offset / center : 0; // -1 to +1
+
+        // Rotation: negative for left cards, positive for right, zero at center
+        const rotation = normalizedOffset * (maxRotation / 2);
+
+        // Vertical lift: parabolic curve, cards at edges are lower
+        const lift = Math.abs(normalizedOffset) * Math.abs(normalizedOffset) * liftAmount;
+
+        cardEl.style.setProperty('--card-rot', `${rotation.toFixed(2)}deg`);
+        cardEl.style.setProperty('--card-lift', `${lift.toFixed(2)}px`);
+        cardEl.style.zIndex = index + 1;
+
+        cardEl.addEventListener('click', () => {
+          this.handleHumanCardClick(card);
         });
+        fanContainer.appendChild(cardEl);
+      });
 
-        bottomCards.forEach((card, index) => {
-          const cardEl = this.createCardDom(card);
-          cardEl.classList.add('anim-deal', 'in-row-bottom');
-          cardEl.style.zIndex = index + 15;
-          cardEl.addEventListener('click', () => {
-            this.handleHumanCardClick(card);
-          });
-          rowBottom.appendChild(cardEl);
-        });
-
-        this.humanHandEl.appendChild(rowTop);
-        this.humanHandEl.appendChild(rowBottom);
-      } else {
-        // 6 or fewer cards - centered single row
-        const rowSingle = document.createElement('div');
-        rowSingle.className = 'hand-row row-single';
-
-        hand.cards.forEach((card, index) => {
-          const cardEl = this.createCardDom(card);
-          cardEl.classList.add('anim-deal', 'in-row-bottom');
-          cardEl.style.zIndex = index + 1;
-          cardEl.addEventListener('click', () => {
-            this.handleHumanCardClick(card);
-          });
-          rowSingle.appendChild(cardEl);
-        });
-
-        this.humanHandEl.appendChild(rowSingle);
-      }
+      this.humanHandEl.appendChild(fanContainer);
 
       this.updateCardLegalStates();
       this.updateHumanCardSelectionClasses();
@@ -591,40 +590,310 @@
       }
     }
 
+    renderBotHands(hands) {
+      for (let p = 1; p <= 3; p++) {
+        const container = this.botHandContainers[p];
+        if (!container) continue;
+        const count = (hands && hands[p]) ? hands[p].count : 0;
+        container.innerHTML = '';
+        for (let i = 0; i < count; i++) {
+          const miniCard = document.createElement('div');
+          miniCard.className = 'bot-card';
+          miniCard.dataset.index = i;
+          miniCard.style.zIndex = i + 1;
+          const img = document.createElement('img');
+          img.src = 'assets/cards/back.svg';
+          img.alt = 'Card Back';
+          img.draggable = false;
+          miniCard.appendChild(img);
+          container.appendChild(miniCard);
+        }
+      }
+    }
+
+    animateCardPlay(playerIndex, card, cardIndex) {
+      const targetSlot = this.trickSlots[playerIndex];
+      if (!targetSlot) return;
+
+      // 1. Locate source card on screen
+      let sourceEl = null;
+
+      if (playerIndex === 0) {
+        sourceEl = this.humanHandEl.querySelector(`.card[data-id="${card.id}"]`);
+      } else {
+        const botCards = this.botHandContainers[playerIndex]
+          ? this.botHandContainers[playerIndex].querySelectorAll('.bot-card')
+          : [];
+        if (botCards.length > 0) {
+          const idx = (cardIndex !== undefined && cardIndex >= 0 && cardIndex < botCards.length)
+            ? cardIndex
+            : Math.floor(botCards.length / 2);
+          sourceEl = botCards[idx];
+        }
+      }
+
+      // Determine starting coordinates (from source card, or fallback to player station tag)
+      let startRect = null;
+      if (sourceEl && sourceEl.getBoundingClientRect) {
+        const r = sourceEl.getBoundingClientRect();
+        if (r.width > 0 && r.height > 0) {
+          startRect = r;
+          sourceEl.style.visibility = 'hidden';
+        }
+      }
+
+      if (!startRect && this.playerTags[playerIndex]) {
+        const tagRect = this.playerTags[playerIndex].getBoundingClientRect();
+        if (tagRect.width > 0) {
+          startRect = tagRect;
+        }
+      }
+
+      const targetRect = targetSlot.getBoundingClientRect();
+
+      let targetW = targetRect.width;
+      let targetH = targetRect.height;
+      let targetCenterX = targetRect.left + targetRect.width / 2;
+      let targetCenterY = targetRect.top + targetRect.height / 2;
+
+      // Robust fallback if slot has 0 computed dimensions
+      if (targetW === 0) {
+        targetW = window.innerWidth <= 768 ? 50 : 72;
+        targetH = window.innerWidth <= 768 ? 72 : 104;
+        targetCenterX = targetRect.left + targetW / 2;
+        targetCenterY = targetRect.top + targetH / 2;
+      }
+
+      if (!startRect) {
+        this.sound.playCardSnap();
+        this.renderTrickCard(playerIndex, card);
+        return;
+      }
+
+      // 2. Compute FLIP coordinate deltas
+      const dx = (startRect.left + startRect.width / 2) - targetCenterX;
+      const dy = (startRect.top + startRect.height / 2) - targetCenterY;
+
+      // Natural release rotation angle for each seat
+      let startRot = 0;
+      if (playerIndex === 0 && sourceEl && sourceEl.style.getPropertyValue('--card-rot')) {
+        startRot = parseFloat(sourceEl.style.getPropertyValue('--card-rot')) || 0;
+      } else if (playerIndex === 1) {
+        startRot = -12; // West flick
+      } else if (playerIndex === 3) {
+        startRot = 12;  // East flick
+      } else {
+        startRot = -6;  // North flick
+      }
+
+      // 3. Build flying card element placed at destination coordinates
+      const flyer = document.createElement('div');
+      flyer.className = 'flying-card-sweep';
+      flyer.style.left = `${(targetCenterX - targetW / 2)}px`;
+      flyer.style.top = `${(targetCenterY - targetH / 2)}px`;
+      flyer.style.width = `${targetW}px`;
+      flyer.style.height = `${targetH}px`;
+      flyer.style.zIndex = '9999';
+
+      const img = document.createElement('img');
+      img.src = card.svgPath;
+      img.alt = card.fullName;
+      img.draggable = false;
+      flyer.appendChild(img);
+      document.body.appendChild(flyer);
+
+      this.sound.playCardSlide();
+
+      // 4. Smooth, organic GPU-accelerated Keyframe Animation (Identical high-visibility physics for Bots & Human)
+      const duration = (this.game.botDelayMs < 800) ? 280 : 360;
+
+      const anim = flyer.animate([
+        {
+          transform: `translate3d(${dx.toFixed(1)}px, ${dy.toFixed(1)}px, 0px) scale(0.9) rotate(${startRot}deg)`,
+          opacity: 1,
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.35)',
+          offset: 0
+        },
+        {
+          transform: `translate3d(${(dx * 0.45).toFixed(1)}px, ${(dy * 0.45 - 28).toFixed(1)}px, 0px) scale(1.08) rotate(${(startRot * 0.3).toFixed(1)}deg)`,
+          opacity: 1,
+          boxShadow: '0 24px 44px rgba(0, 0, 0, 0.65)',
+          offset: 0.5
+        },
+        {
+          transform: 'translate3d(0px, 0px, 0px) scale(1) rotate(0deg)',
+          opacity: 1,
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4)',
+          offset: 1
+        }
+      ], {
+        duration: duration,
+        easing: 'cubic-bezier(0.22, 0.9, 0.36, 1)',
+        fill: 'forwards'
+      });
+
+      anim.onfinish = () => {
+        flyer.remove();
+        this.sound.playCardSnap();
+        this.renderTrickCard(playerIndex, card);
+      };
+    }
+
     renderTrickCard(playerIndex, card) {
       const slot = this.trickSlots[playerIndex];
       if (!slot) return;
       slot.innerHTML = '';
       const cardEl = this.createCardDom(card);
-      cardEl.classList.add('anim-played', `toss-from-${playerIndex}`);
       slot.appendChild(cardEl);
     }
 
     sweepTrick(winnerIndex) {
+      const winnerTag = this.playerTags[winnerIndex];
+      if (!winnerTag) return;
+
+      const destRect = winnerTag.getBoundingClientRect();
+      const destX = destRect.left + destRect.width / 2;
+      const destY = destRect.top + destRect.height / 2;
+
+      this.sound.playTrickSweep();
+
+      // Collect all 4 cards currently sitting in the trick slots
+      const cardsToSweep = [];
       for (let p = 0; p < 4; p++) {
         const slot = this.trickSlots[p];
-        if (slot && slot.firstElementChild) {
-          slot.firstElementChild.className = `card sweep-to-${winnerIndex}`;
+        if (slot) {
+          const imgEl = slot.querySelector('img');
+          const cardEl = slot.firstElementChild;
+          if (cardEl && imgEl) {
+            const rect = cardEl.getBoundingClientRect();
+            if (rect.width > 0) {
+              cardsToSweep.push({ slot, rect, src: imgEl.src, alt: imgEl.alt || 'Card' });
+            }
+          }
         }
       }
 
-      // Celebratory bounce & gold pulse on winner player tag
-      const winnerTag = this.playerTags[winnerIndex];
-      if (winnerTag) {
+      // Empty trick slots immediately so cards don't double-render
+      cardsToSweep.forEach(({ slot }) => {
+        slot.innerHTML = '';
+      });
+
+      // Fly each trick card smoothly into the winner's player tag
+      cardsToSweep.forEach(({ rect, src, alt }, index) => {
+        const flyer = document.createElement('div');
+        flyer.className = 'flying-card-sweep';
+        flyer.style.left = `${rect.left}px`;
+        flyer.style.top = `${rect.top}px`;
+        flyer.style.width = `${rect.width}px`;
+        flyer.style.height = `${rect.height}px`;
+        flyer.style.zIndex = `${9100 + index}`;
+
+        const img = document.createElement('img');
+        img.src = src;
+        img.alt = alt;
+        img.draggable = false;
+        flyer.appendChild(img);
+        document.body.appendChild(flyer);
+
+        const dx = destX - (rect.left + rect.width / 2);
+        const dy = destY - (rect.top + rect.height / 2);
+
+        // Stagger cards slightly for authentic dealer card gathering
+        const delay = index * 35;
+        const duration = 400;
+
+        const anim = flyer.animate([
+          {
+            transform: 'translate3d(0px, 0px, 0px) scale(1) rotate(0deg)',
+            opacity: 1,
+            boxShadow: '0 4px 14px rgba(0, 0, 0, 0.45)',
+            offset: 0
+          },
+          {
+            transform: `translate3d(${(dx * 0.45).toFixed(1)}px, ${(dy * 0.45 - 25).toFixed(1)}px, 0px) scale(0.85) rotate(${(index * 6 - 9)}deg)`,
+            opacity: 0.95,
+            boxShadow: '0 20px 36px rgba(0, 0, 0, 0.65)',
+            offset: 0.55
+          },
+          {
+            transform: `translate3d(${dx.toFixed(1)}px, ${dy.toFixed(1)}px, 0px) scale(0.18) rotate(${(index * 14 - 21)}deg)`,
+            opacity: 0,
+            boxShadow: '0 2px 6px rgba(0, 0, 0, 0.2)',
+            offset: 1
+          }
+        ], {
+          duration: duration,
+          delay: delay,
+          easing: 'cubic-bezier(0.2, 0.9, 0.35, 1)',
+          fill: 'forwards'
+        });
+
+        anim.onfinish = () => {
+          flyer.remove();
+        };
+      });
+
+      // Celebratory gold pulse on the winner player tag as cards arrive
+      setTimeout(() => {
         winnerTag.classList.remove('winner-tag-bounce');
-        void winnerTag.offsetWidth; // Force CSS reflow to re-trigger animation
+        void winnerTag.offsetWidth;
         winnerTag.classList.add('winner-tag-bounce');
         setTimeout(() => {
           if (winnerTag) winnerTag.classList.remove('winner-tag-bounce');
         }, 750);
-      }
+      }, 360);
 
+      // Update scoreboard
       setTimeout(() => {
-        for (let p = 0; p < 4; p++) {
-          if (this.trickSlots[p]) this.trickSlots[p].innerHTML = '';
-        }
         this.updateScoreboard();
-      }, 480);
+      }, 520);
+    }
+
+    animatePassExchange(passed, received, direction) {
+      // Map pass direction to target bot index from South (0)
+      let targetIndex = 1; // Left = West
+      if (direction === 'right') targetIndex = 3; // Right = East
+      else if (direction === 'across') targetIndex = 2; // Across = North
+
+      const targetStation = this.playerTags[targetIndex];
+      const southTag = this.playerTags[0];
+      if (!targetStation || !southTag) return;
+
+      const targetRect = targetStation.getBoundingClientRect();
+      const southRect = this.humanHandEl ? this.humanHandEl.getBoundingClientRect() : southTag.getBoundingClientRect();
+
+      // 3 passed cards fly from South toward the target player
+      for (let i = 0; i < 3; i++) {
+        const flyer = document.createElement('div');
+        flyer.className = 'flying-card-sweep';
+        const startX = southRect.left + southRect.width / 2 + (i - 1) * 36;
+        const startY = southRect.top + 10;
+        flyer.style.left = `${startX}px`;
+        flyer.style.top = `${startY}px`;
+        flyer.style.width = '48px';
+        flyer.style.height = '70px';
+        flyer.style.zIndex = `${9500 + i}`;
+
+        const img = document.createElement('img');
+        img.src = (passed && passed[i]) ? passed[i].svgPath : 'assets/cards/back.svg';
+        img.draggable = false;
+        flyer.appendChild(img);
+        document.body.appendChild(flyer);
+
+        const dx = (targetRect.left + targetRect.width / 2) - startX;
+        const dy = (targetRect.top + targetRect.height / 2) - startY;
+
+        flyer.animate([
+          { transform: 'translate3d(0, 0, 0) scale(1) rotate(0deg)', opacity: 1 },
+          { transform: `translate3d(${(dx * 0.5).toFixed(1)}px, ${(dy * 0.5 - 20).toFixed(1)}px, 0px) scale(0.85) rotate(${(i * 8 - 8)}deg)`, opacity: 0.9 },
+          { transform: `translate3d(${dx.toFixed(1)}px, ${dy.toFixed(1)}px, 0) scale(0.25) rotate(${(i * 12 - 12)}deg)`, opacity: 0 }
+        ], {
+          duration: 450,
+          delay: i * 45,
+          easing: 'cubic-bezier(0.22, 0.9, 0.36, 1)',
+          fill: 'forwards'
+        }).onfinish = () => flyer.remove();
+      }
     }
 
     updateScoreboard() {

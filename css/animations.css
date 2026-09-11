@@ -3,16 +3,14 @@
 @keyframes dealSlideIn {
   from {
     opacity: 0;
-    transform: scale(0.5) translateY(40px);
   }
   to {
     opacity: 1;
-    transform: scale(1) translateY(0);
   }
 }
 
 .anim-deal {
-  animation: dealSlideIn 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  animation: dealSlideIn 0.22s ease-out;
 }
 
 /* ========================================================
@@ -196,4 +194,73 @@
 
 .moon-shot-banner {
   animation: moonGlow 1.5s infinite alternate;
+}
+
+/* Real-Time GPU-Accelerated 3D Flying Card (FLIP Architecture) */
+.flying-card-3d {
+  position: fixed !important;
+  z-index: 9999 !important;
+  pointer-events: none !important;
+  perspective: 1200px !important;
+  will-change: transform, box-shadow !important;
+  border-radius: var(--card-radius);
+}
+
+.flying-card-3d .fcard-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  border-radius: var(--card-radius);
+}
+
+.flying-card-3d .fcard-face {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: var(--card-radius);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+}
+
+.flying-card-3d .fcard-front {
+  transform: rotateY(0deg);
+}
+
+.flying-card-3d .fcard-back {
+  transform: rotateY(180deg);
+}
+
+.flying-card-3d img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: var(--card-radius);
+  display: block;
+  pointer-events: none;
+}
+
+/* Dynamic GPU Flying Card for Trick Sweeps & Passing */
+.flying-card-sweep {
+  position: fixed !important;
+  z-index: 99999 !important;
+  pointer-events: none !important;
+  border-radius: var(--card-radius);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5) !important;
+  will-change: transform, opacity !important;
+  display: block !important;
+  overflow: hidden !important;
+  transform-origin: center center !important;
+}
+
+.flying-card-sweep img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  display: block !important;
+  border-radius: var(--card-radius);
 }

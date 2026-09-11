@@ -219,8 +219,28 @@ main.game-table {
 }
 
 .station-north { grid-area: north; align-self: start; }
-.station-west  { grid-area: west;  justify-self: start; align-self: center; }
-.station-east  { grid-area: east;  justify-self: end;   align-self: center; }
+.station-west {
+  grid-area: west;
+  position: absolute;
+  left: 0;
+  top: 46%;
+  transform: translateY(-50%);
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.station-east {
+  grid-area: east;
+  position: absolute;
+  right: 0;
+  top: 46%;
+  transform: translateY(-50%);
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 .station-south {
   grid-area: south;
   align-self: end;
@@ -274,6 +294,54 @@ main.game-table {
   font-weight: 800;
   color: #fbbf24; /* Clean gold points value */
   margin-left: 2px;
+}
+
+/* Vertical Side Tabs for West & East (matching reference game) */
+.station-west .player-tag {
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 5px;
+  border-radius: 0 14px 14px 0;
+  border-left: none;
+  box-shadow: 2px 4px 14px rgba(0, 0, 0, 0.5);
+}
+
+.station-west .player-name {
+  writing-mode: vertical-lr;
+  transform: rotate(180deg);
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.station-west .player-score-badge {
+  margin-left: 0;
+  margin-top: 2px;
+  font-size: 11.5px;
+}
+
+.station-east .player-tag {
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 5px;
+  border-radius: 14px 0 0 14px;
+  border-right: none;
+  box-shadow: -2px 4px 14px rgba(0, 0, 0, 0.5);
+}
+
+.station-east .player-name {
+  writing-mode: vertical-lr;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.station-east .player-score-badge {
+  margin-left: 0;
+  margin-top: 2px;
+  font-size: 11.5px;
 }
 
 /* Active Turn State on Player Tag */
@@ -354,18 +422,83 @@ main.game-table {
   vertical-align: middle;
 }
 
-/* Bot Mini Hands */
+/* Bot Real Hands (Face-down Card Backs) */
 .bot-hand {
-  display: flex;
-  align-items: center;
+  display: flex !important;
+  position: relative;
+  z-index: 15;
+  pointer-events: none;
+  user-select: none;
+}
+
+.bot-card {
+  width: clamp(24px, 2.4vw, 34px);
+  height: clamp(34px, 3.5vw, 48px);
+  border-radius: 4px;
+  position: relative;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.bot-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 4px;
+  display: block;
+}
+
+/* North Bot Hand - Horizontal Overlapping Fan Row below tag */
+.bot-hand-north {
+  flex-direction: row;
   justify-content: center;
-  margin: 2px 0;
+  align-items: center;
+  margin-top: 5px;
+}
+
+.bot-hand-north .bot-card {
+  margin-left: clamp(-18px, -1.8vw, -12px);
+}
+
+.bot-hand-north .bot-card:first-child {
+  margin-left: 0;
+}
+
+/* West Bot Hand - Vertical Overlapping Stack beside the left side tag */
+.bot-hand-west {
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-top: 6px;
+}
+
+.bot-hand-west .bot-card {
+  margin-top: clamp(-28px, -2.8vw, -18px);
+}
+
+.bot-hand-west .bot-card:first-child {
+  margin-top: 0;
+}
+
+/* East Bot Hand - Vertical Overlapping Stack beside the right side tag */
+.bot-hand-east {
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-top: 6px;
+}
+
+.bot-hand-east .bot-card {
+  margin-top: clamp(-28px, -2.8vw, -18px);
+}
+
+.bot-hand-east .bot-card:first-child {
+  margin-top: 0;
 }
 
 .bot-card-count {
-  font-size: 11px;
-  color: var(--text-muted);
-  font-weight: 600;
+  display: none !important;
 }
 
 /* Center Trick Arena (Clean Cards on Felt) */
@@ -379,8 +512,8 @@ main.game-table {
 }
 
 .trick-surface {
-  width: clamp(240px, 32vw, 320px);
-  height: clamp(170px, 24vh, 230px);
+  width: clamp(280px, 32vw, 380px);
+  height: clamp(200px, 26vh, 280px);
   position: relative;
   display: flex;
   align-items: center;
@@ -393,6 +526,8 @@ main.game-table {
   align-items: center;
   justify-content: center;
   z-index: 10;
+  width: clamp(64px, 5.8vw, 88px);
+  height: clamp(92px, 8.4vw, 128px);
 }
 
 /* Cross formation on the felt table (matching reference screenshots) */
@@ -421,9 +556,10 @@ main.game-table {
 }
 
 .trick-slot .card {
-  width: clamp(48px, 5.6vw, 66px) !important;
-  height: clamp(70px, 8.2vw, 96px) !important;
+  width: clamp(64px, 5.8vw, 88px) !important;
+  height: clamp(92px, 8.4vw, 128px) !important;
   pointer-events: none;
+  transform: none !important;
 }
 
 /* Table Message Overlay */
@@ -539,16 +675,16 @@ main.game-table {
 
 .human-hand {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-end;
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: center;
   width: 100%;
   max-width: 100%;
   position: relative;
   overflow: visible;
 }
 
-/* Staggered Hand Rows (matching reference screenshots) */
+/* Fan Arc Hand Row */
 .hand-row {
   display: flex;
   justify-content: center;
@@ -557,40 +693,21 @@ main.game-table {
   overflow: visible;
 }
 
-.hand-row.row-top {
-  margin-bottom: -48px; /* Back row sits higher, exposing rank & suit */
-  z-index: 5;
-}
-
-.hand-row.row-bottom {
-  z-index: 20;
-}
-
-.hand-row.row-single {
+.hand-row.row-fan {
   z-index: 20;
 }
 
 .hand-row .card {
-  margin-left: clamp(-16px, -2vw, -10px);
+  margin-left: clamp(-46px, -3.8vw, -28px);
   transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
               margin 0.2s ease,
               box-shadow 0.22s ease,
               filter 0.2s ease;
+  transform-origin: 50% 120%;
 }
 
 .hand-row .card:first-child {
   margin-left: 0;
-}
-
-/* Desktop wide screens (>= 900px): Flat continuous single row */
-@media (min-width: 900px) {
-  .human-hand {
-    flex-direction: row;
-    justify-content: center;
-  }
-  .hand-row {
-    display: contents;
-  }
 }
 
 /* ========================================================
@@ -706,28 +823,79 @@ main.game-table {
     align-items: center;
   }
 
-  /* WEST STATION: Hugging left screen edge (matching reference screenshots) */
+  /* WEST STATION: Vertical label on left edge (matching reference game) */
   .station-west {
     position: absolute;
-    left: 4px;
-    top: 31%;
+    left: 0;
+    top: 42%;
     transform: translateY(-50%);
     z-index: 30;
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     align-items: center;
   }
 
-  /* EAST STATION: Hugging right screen edge (matching reference screenshots) */
+  .station-west .player-tag {
+    writing-mode: vertical-lr;
+    transform: rotate(180deg);
+    border-radius: 0 12px 12px 0;
+    padding: 12px 5px;
+    gap: 6px;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .station-west .player-avatar {
+    width: 24px;
+    height: 24px;
+    font-size: 12px;
+  }
+
+  .station-west .player-name {
+    font-size: 11px;
+    max-width: none;
+    white-space: nowrap;
+  }
+
+  .station-west .player-score-badge {
+    font-size: 11px;
+  }
+
+  /* EAST STATION: Vertical label on right edge (matching reference game) */
   .station-east {
     position: absolute;
-    right: 4px;
-    top: 31%;
+    right: 0;
+    top: 42%;
     transform: translateY(-50%);
     z-index: 30;
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     align-items: center;
+  }
+
+  .station-east .player-tag {
+    writing-mode: vertical-lr;
+    border-radius: 12px 0 0 12px;
+    padding: 12px 5px;
+    gap: 6px;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .station-east .player-avatar {
+    width: 24px;
+    height: 24px;
+    font-size: 12px;
+  }
+
+  .station-east .player-name {
+    font-size: 11px;
+    max-width: none;
+    white-space: nowrap;
+  }
+
+  .station-east .player-score-badge {
+    font-size: 11px;
   }
 
   .player-tag {
@@ -758,8 +926,23 @@ main.game-table {
     display: none; /* Keep mobile felt table clean and open */
   }
 
+  /* Bot Hands visible and compact on mobile */
   .bot-hand {
-    display: none;
+    display: flex !important;
+  }
+
+  .bot-card {
+    width: 20px;
+    height: 28px;
+  }
+
+  .bot-hand-north .bot-card {
+    margin-left: -12px;
+  }
+
+  .bot-hand-west .bot-card,
+  .bot-hand-east .bot-card {
+    margin-top: -18px;
   }
 
   /* CENTER TRICK ARENA */
@@ -775,15 +958,20 @@ main.game-table {
   }
 
   .trick-surface {
-    width: 150px;
-    height: 140px;
+    width: 170px;
+    height: 155px;
     border: none;
     background: transparent;
   }
 
+  .trick-slot {
+    width: 50px;
+    height: 72px;
+  }
+
   .trick-slot .card {
-    width: 44px !important;
-    height: 64px !important;
+    width: 50px !important;
+    height: 72px !important;
   }
 
   .slot-north { top: 0; }
@@ -837,11 +1025,7 @@ main.game-table {
   }
 
   .hand-row .card {
-    margin-left: clamp(-14px, -2.6vw, -9px);
-  }
-
-  .hand-row.row-top {
-    margin-bottom: -22px;
+    margin-left: clamp(-38px, -8.5vw, -25px);
   }
 
   /* Scoreboard footer on mobile */

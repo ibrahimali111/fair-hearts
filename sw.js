@@ -1,7 +1,7 @@
 /**
  * sw.js - Service Worker with Cache-on-Fetch for 100% offline gameplay in Fair Hearts
  */
-const CACHE_NAME = 'fair-hearts-v6';
+const CACHE_NAME = 'fair-hearts-v19';
 const CORE_ASSETS = [
   './',
   './index.html',
