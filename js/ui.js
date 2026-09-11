@@ -447,42 +447,103 @@
       if (!hand || !hand.cards) return;
 
       const totalCards = hand.cards.length;
-
-      // Single curved fan arc layout (matching reference game)
-      const fanContainer = document.createElement('div');
-      fanContainer.className = 'hand-row row-fan';
-
-      // Fan arc parameters: calibrated curve that stays within viewport bounds on phone and desktop
       const isMobile = window.innerWidth <= 768;
-      const maxRotation = totalCards > 6 ? (isMobile ? 28 : 42) : (isMobile ? 14 : 22);
-      const liftAmount = totalCards > 6 ? (isMobile ? 12 : 24) : (isMobile ? 6 : 12);
 
-      hand.cards.forEach((card, index) => {
-        const cardEl = this.createCardDom(card);
-        cardEl.classList.add('anim-deal');
+      // On Mobile: Use the luxury two-tier staggered layout from reference game when totalCards > 6
+      if (isMobile && totalCards > 6) {
+        const splitIndex = Math.floor(totalCards / 2);
+        const topCards = hand.cards.slice(0, splitIndex);
+        const bottomCards = hand.cards.slice(splitIndex);
 
-        // Calculate fan position: center card is index (totalCards-1)/2
-        const center = (totalCards - 1) / 2;
-        const offset = index - center; // negative = left, positive = right
-        const normalizedOffset = center > 0 ? offset / center : 0; // -1 to +1
+        const handContainer = document.createElement('div');
+        handContainer.className = 'hand-two-tier';
 
-        // Rotation: negative for left cards, positive for right, zero at center
-        const rotation = normalizedOffset * (maxRotation / 2);
+        const rowTop = document.createElement('div');
+        rowTop.className = 'hand-row row-top';
 
-        // Vertical lift: parabolic curve, cards at edges are lower
-        const lift = Math.abs(normalizedOffset) * Math.abs(normalizedOffset) * liftAmount;
+        const rowBottom = document.createElement('div');
+        rowBottom.className = 'hand-row row-bottom';
 
-        cardEl.style.setProperty('--card-rot', `${rotation.toFixed(2)}deg`);
-        cardEl.style.setProperty('--card-lift', `${lift.toFixed(2)}px`);
-        cardEl.style.zIndex = index + 1;
+        // Gentle curve for top row
+        const topCenter = (topCards.length - 1) / 2;
+        topCards.forEach((card, index) => {
+          const cardEl = this.createCardDom(card);
+          cardEl.classList.add('anim-deal', 'in-row-top');
 
-        cardEl.addEventListener('click', () => {
-          this.handleHumanCardClick(card);
+          const offset = topCenter > 0 ? (index - topCenter) / topCenter : 0;
+          const rot = offset * 10;
+          const lift = Math.abs(offset) * 5;
+
+          cardEl.style.setProperty('--card-rot', `${rot.toFixed(2)}deg`);
+          cardEl.style.setProperty('--card-lift', `${lift.toFixed(2)}px`);
+          cardEl.style.zIndex = index + 1;
+
+          cardEl.addEventListener('click', () => {
+            this.handleHumanCardClick(card);
+          });
+          rowTop.appendChild(cardEl);
         });
-        fanContainer.appendChild(cardEl);
-      });
 
-      this.humanHandEl.appendChild(fanContainer);
+        // Gentle curve for bottom row
+        const botCenter = (bottomCards.length - 1) / 2;
+        bottomCards.forEach((card, index) => {
+          const cardEl = this.createCardDom(card);
+          cardEl.classList.add('anim-deal', 'in-row-bottom');
+
+          const offset = botCenter > 0 ? (index - botCenter) / botCenter : 0;
+          const rot = offset * 12;
+          const lift = Math.abs(offset) * 6;
+
+          cardEl.style.setProperty('--card-rot', `${rot.toFixed(2)}deg`);
+          cardEl.style.setProperty('--card-lift', `${lift.toFixed(2)}px`);
+          cardEl.style.zIndex = index + 25; // on top of back tier
+
+          cardEl.addEventListener('click', () => {
+            this.handleHumanCardClick(card);
+          });
+          rowBottom.appendChild(cardEl);
+        });
+
+        handContainer.appendChild(rowTop);
+        handContainer.appendChild(rowBottom);
+        this.humanHandEl.appendChild(handContainer);
+      } else {
+        // Desktop OR 6 or fewer cards on mobile: Spacious single-row curved fan
+        const fanContainer = document.createElement('div');
+        fanContainer.className = 'hand-row row-fan';
+
+        let cardOverlap = -24;
+        if (totalCards <= 4) cardOverlap = 6;
+        else if (totalCards <= 6) cardOverlap = -6;
+        else if (totalCards <= 8) cardOverlap = -16;
+        else cardOverlap = -32;
+
+        fanContainer.style.setProperty('--hand-overlap', `${cardOverlap}px`);
+
+        const maxRotation = totalCards > 6 ? 36 : 18;
+        const liftAmount = totalCards > 6 ? 18 : 8;
+
+        const center = (totalCards - 1) / 2;
+        hand.cards.forEach((card, index) => {
+          const cardEl = this.createCardDom(card);
+          cardEl.classList.add('anim-deal');
+
+          const offset = center > 0 ? (index - center) / center : 0;
+          const rot = offset * (maxRotation / 2);
+          const lift = Math.abs(offset) * Math.abs(offset) * liftAmount;
+
+          cardEl.style.setProperty('--card-rot', `${rot.toFixed(2)}deg`);
+          cardEl.style.setProperty('--card-lift', `${lift.toFixed(2)}px`);
+          cardEl.style.zIndex = index + 1;
+
+          cardEl.addEventListener('click', () => {
+            this.handleHumanCardClick(card);
+          });
+          fanContainer.appendChild(cardEl);
+        });
+
+        this.humanHandEl.appendChild(fanContainer);
+      }
 
       this.updateCardLegalStates();
       this.updateHumanCardSelectionClasses();

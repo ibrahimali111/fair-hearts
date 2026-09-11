@@ -55,9 +55,9 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>♥</text></svg>">
 
   <!-- Stylesheets -->
-  <link rel="stylesheet" href="css/style.css?v=19">
-  <link rel="stylesheet" href="css/cards.css?v=19">
-  <link rel="stylesheet" href="css/animations.css?v=19">
+  <link rel="stylesheet" href="css/style.css?v=20">
+  <link rel="stylesheet" href="css/cards.css?v=20">
+  <link rel="stylesheet" href="css/animations.css?v=20">
 </head>
 <body>
 
@@ -323,21 +323,23 @@
   </div>
 
   <!-- Application Scripts in Dependency Order -->
-  <script src="js/deck.js?v=19"></script>
-  <script src="js/trick.js?v=19"></script>
-  <script src="js/scoring.js?v=19"></script>
-  <script src="js/ai-common.js?v=19"></script>
-  <script src="js/ai-easy.js?v=19"></script>
-  <script src="js/ai-normal.js?v=19"></script>
-  <script src="js/ai-hard.js?v=19"></script>
-  <script src="js/game.js?v=19"></script>
-  <script src="js/ui.js?v=19"></script>
+  <script src="js/deck.js?v=20"></script>
+  <script src="js/trick.js?v=20"></script>
+  <script src="js/scoring.js?v=20"></script>
+  <script src="js/ai-common.js?v=20"></script>
+  <script src="js/ai-easy.js?v=20"></script>
+  <script src="js/ai-normal.js?v=20"></script>
+  <script src="js/ai-hard.js?v=20"></script>
+  <script src="js/game.js?v=20"></script>
+  <script src="js/ui.js?v=20"></script>
 
   <!-- Game Bootstrap -->
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const game = new Hearts.GameController();
       const ui = new Hearts.UIManager(game);
+      window.game = game;
+      window.ui = ui;
       game.initialize();
 
       // Register PWA Service Worker if supported

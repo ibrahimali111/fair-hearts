@@ -9,10 +9,10 @@
 
 @media (max-width: 768px) {
   :root {
-    /* Perfectly calibrated card dimensions to fit 13 cards without cropping on any mobile screen */
-    --card-width: clamp(46px, 12.8vw, 56px);
-    --card-height: clamp(68px, 18.8vw, 82px);
-    --card-radius: 5px;
+    /* Luxury large cards matching reference screenshot */
+    --card-width: clamp(56px, 15vw, 68px);
+    --card-height: clamp(80px, 21.5vw, 98px);
+    --card-radius: 6px;
   }
 }
 
@@ -129,6 +129,22 @@
 
 .card.is-selected img.card-img {
   box-shadow: 0 0 0 3px #3b82f6, 0 16px 32px rgba(59, 130, 246, 0.55) !important;
+}
+
+/* Card Selected for Play (Lift-to-confirm on Mobile) */
+.card.is-selected-play {
+  transform: rotate(var(--card-rot, 0deg)) translateY(calc(var(--card-lift, 0px) - 38px)) scale(1.08) !important;
+  z-index: 200 !important;
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+.card.is-selected-play img.card-img {
+  box-shadow: 0 0 0 3.5px #f59e0b, 0 16px 36px rgba(245, 158, 11, 0.65) !important;
+}
+
+.card.is-selected-play::after {
+  display: none !important;
 }
 
 /* Point badges on cards */
