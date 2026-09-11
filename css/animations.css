@@ -1,0 +1,111 @@
+/* animations.css - Smooth Game Animations for Fair Hearts */
+
+@keyframes dealSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.4) translateY(60px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.anim-deal {
+  animation: dealSlideIn 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+/* Play Card Drop Animation into Trick Center */
+@keyframes playCardCenter {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) translateY(20px);
+  }
+  60% {
+    transform: scale(1.08) translateY(-4px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.anim-played {
+  animation: playCardCenter 0.28s cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
+}
+
+/* Trick Sweep Animations toward specific player seat */
+@keyframes sweepToSouth {
+  to {
+    opacity: 0;
+    transform: translateY(160px) scale(0.3);
+  }
+}
+
+@keyframes sweepToWest {
+  to {
+    opacity: 0;
+    transform: translateX(-160px) scale(0.3);
+  }
+}
+
+@keyframes sweepToNorth {
+  to {
+    opacity: 0;
+    transform: translateY(-160px) scale(0.3);
+  }
+}
+
+@keyframes sweepToEast {
+  to {
+    opacity: 0;
+    transform: translateX(160px) scale(0.3);
+  }
+}
+
+.sweep-to-0 { animation: sweepToSouth 0.45s ease-in forwards; }
+.sweep-to-1 { animation: sweepToWest 0.45s ease-in forwards; }
+.sweep-to-2 { animation: sweepToNorth 0.45s ease-in forwards; }
+.sweep-to-3 { animation: sweepToEast 0.45s ease-in forwards; }
+
+/* Active Turn Pulse Indicator */
+@keyframes activePulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 0 12px rgba(34, 197, 94, 0);
+  }
+}
+
+.is-active-turn {
+  animation: activePulse 1.8s infinite;
+}
+
+/* Hearts Broken Dramatic Flash */
+@keyframes heartsBrokenFlash {
+  0% {
+    background-color: rgba(220, 38, 38, 0.35);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.hearts-broken-alert {
+  animation: heartsBrokenFlash 0.9s ease-out forwards;
+}
+
+/* Shoot The Moon Celebration Burst */
+@keyframes moonGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 15px #f59e0b) drop-shadow(0 0 35px #ef4444);
+  }
+  50% {
+    filter: drop-shadow(0 0 30px #f59e0b) drop-shadow(0 0 60px #ef4444);
+  }
+}
+
+.moon-shot-banner {
+  animation: moonGlow 1.5s infinite alternate;
+}

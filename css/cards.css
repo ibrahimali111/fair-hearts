@@ -1,0 +1,225 @@
+/* cards.css - Vector CSS/SVG Playing Cards for Fair Hearts */
+
+:root {
+  --card-width: 82px;
+  --card-height: 118px;
+  --card-radius: 8px;
+  --card-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --card-red: #d32f2f;
+  --card-black: #1e293b;
+  --card-bg: #ffffff;
+  --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.28), 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+@media (max-width: 600px) {
+  :root {
+    --card-width: 56px;
+    --card-height: 82px;
+    --card-radius: 5px;
+  }
+}
+
+/* Base Card Element */
+.card {
+  width: var(--card-width);
+  height: var(--card-height);
+  border-radius: var(--card-radius);
+  background: var(--card-bg);
+  box-shadow: var(--card-shadow);
+  position: relative;
+  user-select: none;
+  cursor: default;
+  transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
+              box-shadow 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
+              filter 0.2s ease;
+  font-family: var(--card-font);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+/* Card Suit Colors */
+.card.suit-H, .card.suit-D {
+  color: var(--card-red);
+}
+.card.suit-S, .card.suit-C {
+  color: var(--card-black);
+}
+
+/* Corner Pip Layout (Top-Left and Bottom-Right) */
+.card-corner {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.card-corner.top-left {
+  top: 6px;
+  left: 6px;
+}
+
+.card-corner.bottom-right {
+  bottom: 6px;
+  right: 6px;
+  transform: rotate(180deg);
+}
+
+.card-rank {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.card-suit-small {
+  font-size: 14px;
+  margin-top: 1px;
+}
+
+@media (max-width: 600px) {
+  .card-rank {
+    font-size: 12px;
+  }
+  .card-suit-small {
+    font-size: 10px;
+  }
+  .card-corner.top-left { top: 4px; left: 4px; }
+  .card-corner.bottom-right { bottom: 4px; right: 4px; }
+}
+
+/* Center Large Pip / Face Display */
+.card-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.card-center .suit-symbol {
+  font-size: 34px;
+  line-height: 1;
+}
+
+.card-center .face-label {
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-top: -2px;
+  opacity: 0.9;
+}
+
+@media (max-width: 600px) {
+  .card-center .suit-symbol { font-size: 24px; }
+  .card-center .face-label { font-size: 10px; }
+}
+
+/* Queen of Spades & Hearts Badges */
+.card.is-queen-spades {
+  background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+  border: 1px solid #94a3b8;
+}
+
+.card.is-queen-spades::after {
+  content: "13 pts";
+  position: absolute;
+  bottom: 3px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 8px;
+  font-weight: 800;
+  color: #b91c1c;
+  background: #fee2e2;
+  padding: 1px 4px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.card.is-heart::after {
+  content: "1 pt";
+  position: absolute;
+  bottom: 3px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 8px;
+  font-weight: 700;
+  color: #b91c1c;
+  opacity: 0.8;
+  white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+  .card.is-queen-spades::after, .card.is-heart::after {
+    display: none;
+  }
+}
+
+/* Face-Down Card Back Pattern */
+.card.face-down {
+  background: radial-gradient(circle at center, #1e3a8a 0%, #0f172a 100%);
+  border: 2px solid #3b82f6;
+  position: relative;
+  overflow: hidden;
+}
+
+.card.face-down::before {
+  content: "";
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  right: 4px;
+  bottom: 4px;
+  border: 1px dashed rgba(255, 255, 255, 0.35);
+  border-radius: 4px;
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.05) 0,
+    rgba(255, 255, 255, 0.05) 4px,
+    transparent 4px,
+    transparent 8px
+  );
+}
+
+/* Interactive States for Human Hand */
+.card.interactive {
+  cursor: pointer;
+}
+
+.card.interactive:hover {
+  transform: translateY(-16px) scale(1.05);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.35);
+  z-index: 50 !important;
+}
+
+/* Legal Card Pulse Glow */
+.card.is-legal {
+  cursor: pointer;
+  box-shadow: 0 0 0 2px #22c55e, 0 8px 18px rgba(34, 197, 94, 0.35);
+}
+
+.card.is-legal:hover {
+  transform: translateY(-20px) scale(1.08);
+  box-shadow: 0 0 0 3px #16a34a, 0 14px 28px rgba(22, 163, 74, 0.45);
+}
+
+/* Illegal Card Dimmed State */
+.card.is-illegal {
+  opacity: 0.45;
+  filter: grayscale(40%);
+  cursor: not-allowed !important;
+  transform: none !important;
+}
+
+/* Selected State (for Card Passing) */
+.card.is-selected {
+  transform: translateY(-24px) scale(1.06) !important;
+  box-shadow: 0 0 0 3px #3b82f6, 0 16px 32px rgba(59, 130, 246, 0.5) !important;
+  z-index: 60 !important;
+}

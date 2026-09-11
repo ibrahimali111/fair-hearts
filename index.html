@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Fair Hearts — Unbiased AI Card Game</title>
+  <meta name="description" content="Open-source, mathematically fair Hearts card game with zero bias against the player and 3 difficulty levels.">
+  <meta name="theme-color" content="#0e3d23">
+  
+  <!-- PWA Manifest & Icons -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>♥</text></svg>">
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/cards.css">
+  <link rel="stylesheet" href="css/animations.css">
+</head>
+<body>
+
+  <div id="app">
+    <!-- Top Navigation & Match Header -->
+    <header class="top-bar">
+      <div class="brand">
+        <span class="brand-icon">♥</span>
+        <h1>Fair Hearts</h1>
+        <span class="brand-badge">Zero Bias AI</span>
+      </div>
+
+      <div class="match-status-bar">
+        <div class="status-chip" id="badge-round">Round 1</div>
+        <div class="status-chip" id="badge-pass-dir">Pass Left</div>
+        <div class="status-chip hearts-locked" id="badge-hearts-status">♥ Locked</div>
+      </div>
+
+      <div class="header-actions">
+        <button class="btn-icon" id="btn-proof" title="How our AI is provably fair">
+          <span>⚖️</span> Fairness Proof
+        </button>
+        <button class="btn-icon" id="btn-settings" title="Game Settings">
+          <span>⚙️</span> Settings
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Casino Green Felt Game Table -->
+    <main class="game-table">
+      <!-- NORTH (Bot 2) -->
+      <section class="player-station station-north">
+        <div class="player-tag" id="tag-north">
+          <div class="player-avatar">🤖</div>
+          <span class="player-name">North (Bot 2)</span>
+          <span class="player-score-badge" id="badge-score-north">0 pts</span>
+        </div>
+        <div class="bot-hand">
+          <div class="card face-down"></div>
+        </div>
+        <span class="bot-card-count" id="count-north">13 cards</span>
+      </section>
+
+      <!-- WEST (Bot 1) -->
+      <section class="player-station station-west">
+        <div class="player-tag" id="tag-west">
+          <div class="player-avatar">🤖</div>
+          <span class="player-name">West (Bot 1)</span>
+          <span class="player-score-badge" id="badge-score-west">0 pts</span>
+        </div>
+        <div class="bot-hand">
+          <div class="card face-down"></div>
+        </div>
+        <span class="bot-card-count" id="count-west">13 cards</span>
+      </section>
+
+      <!-- EAST (Bot 3) -->
+      <section class="player-station station-east">
+        <div class="player-tag" id="tag-east">
+          <div class="player-avatar">🤖</div>
+          <span class="player-name">East (Bot 3)</span>
+          <span class="player-score-badge" id="badge-score-east">0 pts</span>
+        </div>
+        <div class="bot-hand">
+          <div class="card face-down"></div>
+        </div>
+        <span class="bot-card-count" id="count-east">13 cards</span>
+      </section>
+
+      <!-- CENTER TRICK ARENA -->
+      <section class="trick-arena">
+        <div class="trick-surface">
+          <div class="trick-slot slot-north" id="slot-north"></div>
+          <div class="trick-slot slot-west" id="slot-west"></div>
+          <div class="trick-slot slot-east" id="slot-east"></div>
+          <div class="trick-slot slot-south" id="slot-south"></div>
+        </div>
+        <div class="table-message-toast" id="table-toast">Welcome to Fair Hearts!</div>
+      </section>
+
+      <!-- SOUTH (Human Player) -->
+      <section class="player-station station-south">
+        <div class="player-tag" id="tag-south">
+          <div class="player-avatar">👤</div>
+          <span class="player-name">You (South)</span>
+          <span class="player-score-badge" id="badge-score-south">0 pts</span>
+        </div>
+
+        <!-- Floating Card Passing Banner -->
+        <div class="pass-control-panel" id="pass-control-panel">
+          <div class="pass-instruction" id="pass-instruction">Select 3 cards to pass</div>
+          <div class="pass-buttons">
+            <button class="btn-pass-auto" id="btn-auto-pass">Auto-Pick Safe Cards</button>
+            <button class="btn-pass-confirm" id="btn-confirm-pass" disabled>Select 3 cards (0/3)</button>
+          </div>
+        </div>
+
+        <!-- Human Hand Cards Container -->
+        <div class="human-hand-container">
+          <div class="human-hand" id="human-hand"></div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Bottom Persistent Scoreboard -->
+    <footer class="scoreboard-bar">
+      <div class="score-cell is-leader">
+        <span class="score-player-name">You (South)</span>
+        <span class="score-player-points" id="score-south">0</span>
+      </div>
+      <div class="score-cell">
+        <span class="score-player-name">West</span>
+        <span class="score-player-points" id="score-west">0</span>
+      </div>
+      <div class="score-cell">
+        <span class="score-player-name">North</span>
+        <span class="score-player-points" id="score-north">0</span>
+      </div>
+      <div class="score-cell">
+        <span class="score-player-name">East</span>
+        <span class="score-player-points" id="score-east">0</span>
+      </div>
+    </footer>
+  </div>
+
+  <!-- MODAL: Round Complete Summary -->
+  <div class="modal-overlay" id="modal-round-end">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 class="modal-title">Round Complete</h2>
+      </div>
+      <div class="modal-body">
+        <table class="round-score-table">
+          <thead>
+            <tr>
+              <th>Player</th>
+              <th>Captured</th>
+              <th>Round Pts</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody id="round-score-tbody"></tbody>
+        </table>
+      </div>
+      <button class="btn-primary-action" id="btn-next-round">Start Next Round</button>
+    </div>
+  </div>
+
+  <!-- MODAL: Game Over -->
+  <div class="modal-overlay" id="modal-game-over">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 class="modal-title">🏆 Match Results</h2>
+      </div>
+      <div class="modal-body">
+        <p style="margin-bottom: 12px; color: #94a3b8;">A player reached 100 points. Lowest total score wins!</p>
+        <table class="round-score-table">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Player</th>
+              <th>Final Score</th>
+            </tr>
+          </thead>
+          <tbody id="game-over-tbody"></tbody>
+        </table>
+      </div>
+      <button class="btn-primary-action" id="btn-play-again">Play Rematch</button>
+    </div>
+  </div>
+
+  <!-- MODAL: Settings -->
+  <div class="modal-overlay" id="modal-settings">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 class="modal-title">⚙️ Game Settings</h2>
+        <button class="modal-close-btn" id="btn-close-settings">&times;</button>
+      </div>
+      <div class="modal-body" style="display: flex; flex-direction: column; gap: 16px;">
+        <div>
+          <label style="font-weight: 700; display: block; margin-bottom: 6px;">AI Difficulty Level</label>
+          <select id="select-difficulty" style="width: 100%; padding: 8px; border-radius: 6px; background: #1e293b; color: white; border: 1px solid #475569;">
+            <option value="easy">Casual (Heuristic Rules - No Card Counting)</option>
+            <option value="normal" selected>Strategic (Card Counter & Void Tracker)</option>
+            <option value="hard">Master (Monte Carlo Simulation - PIMC)</option>
+          </select>
+          <small style="color: #94a3b8; display: block; margin-top: 4px;">Higher levels make the bots mathematically smarter, NOT biased!</small>
+        </div>
+
+        <div>
+          <label style="font-weight: 700; display: block; margin-bottom: 6px;">Game Speed</label>
+          <select id="select-speed" style="width: 100%; padding: 8px; border-radius: 6px; background: #1e293b; color: white; border: 1px solid #475569;">
+            <option value="fast">Fast (300ms bot moves)</option>
+            <option value="normal" selected>Normal (600ms bot moves)</option>
+            <option value="relaxed">Relaxed (1100ms bot moves)</option>
+          </select>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <input type="checkbox" id="checkbox-sound" checked style="width: 18px; height: 18px;">
+          <label for="checkbox-sound" style="font-weight: 600; cursor: pointer;">Enable Sound Effects (Synthesized Audio)</label>
+        </div>
+      </div>
+      <button class="btn-primary-action" onclick="document.getElementById('modal-settings').classList.remove('open')">Close</button>
+    </div>
+  </div>
+
+  <!-- MODAL: Proof of Zero Bias -->
+  <div class="modal-overlay" id="modal-proof">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 class="modal-title">⚖️ Mathematical Proof of Zero Bias</h2>
+        <button class="modal-close-btn" id="btn-close-proof">&times;</button>
+      </div>
+      <div class="modal-body" style="font-size: 13px; line-height: 1.7;">
+        <p><strong>Why do commercial Hearts games feel rigged?</strong></p>
+        <p style="color: #94a3b8; margin-bottom: 12px;">Most commercial card apps use "rubber-banding" AI that peeks at your hidden hand and coordinates bots to dump the Queen of Spades on the human player to artificially manipulate win rates.</p>
+
+        <p><strong>How Fair Hearts guarantees 100% fairness:</strong></p>
+        <ul style="padding-left: 20px; margin-bottom: 12px; color: #cbd5e1;">
+          <li><strong>Zero Information Leakage:</strong> The AI functions receive only their own cards and publicly played cards. There is literally no code allowing them to peek at your hand.</li>
+          <li><strong>Radical Symmetry:</strong> In the algorithm, all 4 seats are identical anonymous competitors. The bot does not even know which seat is human.</li>
+          <li><strong>Independent Self-Interest:</strong> Every bot plays strictly to minimize its own score or win the match. When dumping penalty cards, bots target whoever is leading the scoreboard, never a specific player.</li>
+          <li><strong>Open Source:</strong> The complete logic is readable in your browser console under <code>window.Hearts</code>.</li>
+        </ul>
+      </div>
+      <button class="btn-primary-action" onclick="document.getElementById('modal-proof').classList.remove('open')">Got It!</button>
+    </div>
+  </div>
+
+  <!-- Application Scripts in Dependency Order -->
+  <script src="js/deck.js"></script>
+  <script src="js/trick.js"></script>
+  <script src="js/scoring.js"></script>
+  <script src="js/ai-common.js"></script>
+  <script src="js/ai-easy.js"></script>
+  <script src="js/ai-normal.js"></script>
+  <script src="js/ai-hard.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/ui.js"></script>
+
+  <!-- Game Bootstrap -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const game = new Hearts.GameController();
+      const ui = new Hearts.UIManager(game);
+      game.startNewGame('normal');
+
+      // Register PWA Service Worker if supported
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').catch(err => {
+          console.log('Service Worker registration skipped:', err);
+        });
+      }
+    });
+  </script>
+</body>
+</html>
