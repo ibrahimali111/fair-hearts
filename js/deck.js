@@ -53,6 +53,15 @@
       return RANK_NAMES[this.rank];
     }
 
+    get svgPath() {
+      const suitMap = { C: 'clubs', D: 'diamonds', H: 'hearts', S: 'spades' };
+      const rankMap = {
+        2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8', 9: '9', 10: '10',
+        11: 'jack', 12: 'queen', 13: 'king', 14: 'ace'
+      };
+      return `assets/cards/${rankMap[this.rank]}_of_${suitMap[this.suit]}.svg`;
+    }
+
     get fullName() {
       const rankWords = {
         2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8', 9: '9', 10: '10',

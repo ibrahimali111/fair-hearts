@@ -1,9 +1,29 @@
+<div align="right">
+  <em>💡 100% original ideas &nbsp;•&nbsp; 🤖 100% vibe coding &nbsp;•&nbsp; 🚫 0% nudes</em>
+  &nbsp;&nbsp;
+  <a href="https://github.com/ibrahimali111" title="100% Original Ideas • 100% Vibe Coding • 0% Nudes">
+    <img src="assets/vibe-coded-badge.svg" height="28" alt="Vibe Coded" />
+  </a>
+</div>
+
 # ♥ Fair Hearts — Zero-Bias Card Game with 3-Tier AI
 
+[![Play Online Free](https://img.shields.io/badge/🎮_PLAY_NOW-ONLINE_IN_BROWSER-brightgreen?style=for-the-badge&logo=googlechrome&logoColor=white)](https://ibrahimali111.github.io/fair-hearts/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Platform: Web & PWA](https://img.shields.io/badge/Platform-Web%20%7C%20PWA%20%7C%20Mobile-blue.svg)](index.html)
+[![Platform: Web & PWA](https://img.shields.io/badge/Platform-Web%20%7C%20PWA%20%7C%20Mobile-blue.svg)](https://ibrahimali111.github.io/fair-hearts/)
 [![AI Architecture: PIMC](https://img.shields.io/badge/AI-Monte%20Carlo%20PIMC-purple.svg)](js/ai-hard.js)
 [![Zero Dependencies](https://img.shields.io/badge/Dependencies-Zero-brightgreen.svg)](index.html)
+
+---
+
+### 🎮 [👉 CLICK HERE TO PLAY INSTANTLY IN YOUR BROWSER 👈](https://ibrahimali111.github.io/fair-hearts/)
+
+> ⚡ **No Installation or Download Required!**  
+> Play immediately on your phone (iPhone or Android) or computer with zero setup, zero ads, and zero account sign-up.
+> 
+> 📲 **Install as Mobile App:** On your phone, tap **Share** (iOS Safari) or **`⋮` Menu** (Android Chrome) ➔ **"Add to Home Screen"** to play full-screen offline anytime.
+
+---
 
 An open-source, mathematically fair implementation of the classic **Hearts** trick-taking card game. Built to solve the widespread frustration with commercial Hearts games that secretly bias and coordinate bots against the human player.
 
@@ -74,6 +94,25 @@ python3 -m http.server 8080
 ```
 
 Open `http://localhost:8080` in your browser.
+
+---
+
+## ❓ Frequently Asked Questions (FAQ)
+
+### Q: Why do commercial Hearts games feel rigged against the human player?
+Most commercial Hearts apps and websites use "rubber-banding" algorithms. Instead of making bots smarter, the AI peeks at your hidden hand and coordinates discards to dump the Queen of Spades (♠Q) and penalty Hearts onto the human player to artificially suppress win rates.
+
+### Q: How does Fair Hearts guarantee zero bias?
+1. **Zero Information Leakage:** Bot algorithms receive only their own 13 cards and publicly played cards. There is no code path that allows bots to peek at opponent cards.
+2. **Seat Anonymity:** To the AI, all four seats are identical anonymous competitors. The bot has no concept of whether a seat is human or bot.
+3. **Independent Self-Interest:** Every bot plays strictly to minimize its own score or execute a legal "Shoot the Moon". When shedding penalty cards, bots target whoever is leading the match on the scoreboard, never a specific seat.
+4. **Open Source Code:** Every line of card selection logic is open and inspectable in `js/ai-easy.js`, `js/ai-normal.js`, and `js/ai-hard.js`.
+
+### Q: Do I need to install anything to play Fair Hearts?
+No! Fair Hearts runs 100% in your browser with zero installation. Open **[https://ibrahimali111.github.io/fair-hearts/](https://ibrahimali111.github.io/fair-hearts/)** on any phone (iPhone / Android) or computer. You can also tap **"Add to Home Screen"** to install it as a standalone app that works offline.
+
+### Q: What AI algorithm is used on Hard difficulty?
+Hard difficulty implements **Perfect Information Monte Carlo (PIMC)** search. For every decision, the engine samples dozens of void-constrained determinizations of the hidden cards, runs rollouts through future trick sequences, and mathematically chooses the card with the lowest expected penalty points.
 
 ---
 

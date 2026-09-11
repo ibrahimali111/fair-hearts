@@ -1,5 +1,5 @@
 /**
- * ui.js - User Interface Controller, DOM Rendering & Audio Synthesis for Fair Hearts
+ * ui.js - User Interface Controller, Vector SVG Cards & Authentic Audio for Fair Hearts
  * Namespace: window.Hearts
  */
 (function() {
@@ -10,104 +10,112 @@
   const PLAYER_POSITIONS = ['south', 'west', 'north', 'east'];
 
   // ==========================================
-  // WEB AUDIO API SOUND SYNTHESIZER
-  // (Zero external mp3 files required!)
+  // AUTHENTIC CARD SOUND MANAGER
+  // (Uses Kenney Casino Audio pack with fallbacks)
   // ==========================================
   class SoundManager {
     constructor() {
-      this.ctx = null;
       this.enabled = true;
+      this.audioPool = {};
+      this.preloadAudio();
     }
 
-    init() {
-      if (!this.ctx && typeof AudioContext !== 'undefined') {
-        const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        this.ctx = new AudioCtx();
-      }
+    preloadAudio() {
+      const files = [
+        'card-place-1.ogg', 'card-place-2.ogg', 'card-place-3.ogg', 'card-place-4.ogg',
+        'card-slide-1.ogg', 'card-slide-2.ogg', 'card-slide-3.ogg',
+        'card-shove-1.ogg', 'card-shove-2.ogg', 'card-shove-3.ogg',
+        'card-shuffle.ogg'
+      ];
+      files.forEach(f => {
+        try {
+          const a = new Audio(`assets/audio/${f}`);
+          a.preload = 'auto';
+          this.audioPool[f] = a;
+        } catch (e) {}
+      });
+    }
+
+    playRandom(list, volume = 0.6) {
+      if (!this.enabled) return;
+      try {
+        const pick = list[Math.floor(Math.random() * list.length)];
+        let audio = this.audioPool[pick];
+        if (!audio) {
+          audio = new Audio(`assets/audio/${pick}`);
+          this.audioPool[pick] = audio;
+        }
+        audio.currentTime = 0;
+        audio.volume = volume;
+        audio.play().catch(() => {});
+      } catch (e) {}
     }
 
     playCardSnap() {
-      if (!this.enabled) return;
-      this.init();
-      if (!this.ctx) return;
+      this.playRandom(['card-place-1.ogg', 'card-place-2.ogg', 'card-place-3.ogg', 'card-place-4.ogg'], 0.7);
+    }
 
-      const osc = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(320, this.ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(120, this.ctx.currentTime + 0.08);
-
-      gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
-
-      osc.connect(gain);
-      gain.connect(this.ctx.destination);
-      osc.start();
-      osc.stop(this.ctx.currentTime + 0.08);
+    playCardSlide() {
+      this.playRandom(['card-slide-1.ogg', 'card-slide-2.ogg', 'card-slide-3.ogg'], 0.5);
     }
 
     playTrickSweep() {
+      this.playRandom(['card-shove-1.ogg', 'card-shove-2.ogg', 'card-shove-3.ogg'], 0.65);
+    }
+
+    playShuffle() {
       if (!this.enabled) return;
-      this.init();
-      if (!this.ctx) return;
-
-      const osc = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(240, this.ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(480, this.ctx.currentTime + 0.15);
-
-      gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
-
-      osc.connect(gain);
-      gain.connect(this.ctx.destination);
-      osc.start();
-      osc.stop(this.ctx.currentTime + 0.15);
+      try {
+        const audio = this.audioPool['card-shuffle.ogg'] || new Audio('assets/audio/card-shuffle.ogg');
+        audio.currentTime = 0;
+        audio.volume = 0.55;
+        audio.play().catch(() => {});
+      } catch (e) {}
     }
 
     playHeartsBroken() {
       if (!this.enabled) return;
-      this.init();
-      if (!this.ctx) return;
-
-      const notes = [440, 415, 370]; // Ominous descent
-      notes.forEach((freq, idx) => {
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(freq, this.ctx.currentTime + idx * 0.12);
-
-        gain.gain.setValueAtTime(0.2, this.ctx.currentTime + idx * 0.12);
-        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + idx * 0.12 + 0.25);
-
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        osc.start(this.ctx.currentTime + idx * 0.12);
-        osc.stop(this.ctx.currentTime + idx * 0.12 + 0.25);
-      });
+      // Synthesize dramatic bell chime for hearts broken
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const notes = [440, 415, 370];
+        notes.forEach((freq, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.1);
+          gain.gain.setValueAtTime(0.25, ctx.currentTime + idx * 0.1);
+          gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + idx * 0.1 + 0.3);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(ctx.currentTime + idx * 0.1);
+          osc.stop(ctx.currentTime + idx * 0.1 + 0.3);
+        });
+      } catch (e) {}
     }
 
     playChime() {
       if (!this.enabled) return;
-      this.init();
-      if (!this.ctx) return;
-
-      const notes = [523.25, 659.25, 783.99, 1046.50]; // C Major arpeggio
-      notes.forEach((freq, idx) => {
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(freq, this.ctx.currentTime + idx * 0.08);
-
-        gain.gain.setValueAtTime(0.25, this.ctx.currentTime + idx * 0.08);
-        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + idx * 0.08 + 0.35);
-
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        osc.start(this.ctx.currentTime + idx * 0.08);
-        osc.stop(this.ctx.currentTime + idx * 0.08 + 0.35);
-      });
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const notes = [523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((freq, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.08);
+          gain.gain.setValueAtTime(0.2, ctx.currentTime + idx * 0.08);
+          gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + idx * 0.08 + 0.35);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(ctx.currentTime + idx * 0.08);
+          osc.stop(ctx.currentTime + idx * 0.08 + 0.35);
+        });
+      } catch (e) {}
     }
   }
 
@@ -161,9 +169,18 @@
         3: document.getElementById('score-east')
       };
 
+      // Player station score badges (next to name tags)
+      this.playerScoreBadges = {
+        0: document.getElementById('badge-score-south'),
+        1: document.getElementById('badge-score-west'),
+        2: document.getElementById('badge-score-north'),
+        3: document.getElementById('badge-score-east')
+      };
+
       // Pass control panel
       this.passPanel = document.getElementById('pass-control-panel');
       this.passInstruction = document.getElementById('pass-instruction');
+      this.passDirIcon = document.getElementById('pass-dir-icon');
       this.btnConfirmPass = document.getElementById('btn-confirm-pass');
       this.btnAutoPass = document.getElementById('btn-auto-pass');
 
@@ -182,6 +199,14 @@
       this.difficultySelect = document.getElementById('select-difficulty');
       this.speedSelect = document.getElementById('select-speed');
       this.soundCheckbox = document.getElementById('checkbox-sound');
+
+      // Memory & Reset buttons and stats
+      this.btnResetMatch = document.getElementById('btn-reset-match');
+      this.btnResetRecords = document.getElementById('btn-reset-records');
+      this.statMatchesPlayed = document.getElementById('stat-matches-played');
+      this.statMatchesWon = document.getElementById('stat-matches-won');
+      this.statRoundsPlayed = document.getElementById('stat-rounds-played');
+      this.statBestScore = document.getElementById('stat-best-score');
 
       this.proofModal = document.getElementById('modal-proof');
       this.btnProof = document.getElementById('btn-proof');
@@ -226,9 +251,16 @@
       });
 
       this.game.setCallback('onPassPhaseStart', ({ direction, roundNumber }) => {
+        this.sound.playShuffle();
         this.selectedCardsForPass.clear();
         this.updatePassButtonState();
-        this.passInstruction.textContent = `Select 3 cards to pass ${direction.toUpperCase()}`;
+        this.updateCardLegalStates();
+        let dirArrow = '◀';
+        if (direction === 'right') dirArrow = '▶';
+        else if (direction === 'across') dirArrow = '▲';
+        else if (direction === 'none') dirArrow = '—';
+        if (this.passDirIcon) this.passDirIcon.textContent = dirArrow;
+        this.passInstruction.innerHTML = `<span class="pass-dir-icon">${dirArrow}</span> Pass 3 cards ${direction.toUpperCase()}`;
         this.passPanel.classList.add('visible');
         this.passDirBadge.textContent = `Pass ${direction}`;
         this.roundBadge.textContent = `Round ${roundNumber}`;
@@ -238,7 +270,7 @@
         this.passPanel.classList.remove('visible');
         const rList = received.map(c => c.toString()).join(', ');
         this.showToast(`Received from ${direction}: ${rList}`);
-        this.sound.playChime();
+        this.sound.playCardSlide();
       });
 
       this.game.setCallback('onRoundComplete', (summary) => {
@@ -255,45 +287,42 @@
     }
 
     bindUserInteractions() {
-      // Confirm pass click
       this.btnConfirmPass.addEventListener('click', () => {
         if (this.selectedCardsForPass.size === 3) {
+          this.sound.playCardSlide();
           this.game.executePass(Array.from(this.selectedCardsForPass));
         }
       });
 
-      // Auto-pick safe pass click
       this.btnAutoPass.addEventListener('click', () => {
         const autoPicks = Hearts.selectCardsToPass(this.game.hands[0]);
         this.selectedCardsForPass.clear();
         autoPicks.forEach(c => this.selectedCardsForPass.add(c.id));
         this.updateHumanCardSelectionClasses();
         this.updatePassButtonState();
+        this.sound.playCardSlide();
       });
 
-      // Next round click
       this.btnNextRound.addEventListener('click', () => {
         this.roundModal.classList.remove('open');
         this.resetTableForNewRound();
         this.game.startNewRound();
       });
 
-      // Rematch / Play Again
       this.btnPlayAgain.addEventListener('click', () => {
         this.gameOverModal.classList.remove('open');
         this.resetTableForNewRound();
         this.game.startNewGame(this.difficultySelect.value);
       });
 
-      // Settings Modal
       this.btnSettings.addEventListener('click', () => {
+        this.updateStatsModal();
         this.settingsModal.classList.add('open');
       });
       this.btnCloseSettings.addEventListener('click', () => {
         this.settingsModal.classList.remove('open');
       });
 
-      // Proof / Zero Bias Modal
       this.btnProof.addEventListener('click', () => {
         this.proofModal.classList.add('open');
       });
@@ -301,61 +330,101 @@
         this.proofModal.classList.remove('open');
       });
 
-      // Difficulty change
+      // Synchronize settings from saved game data
+      if (this.difficultySelect) {
+        this.difficultySelect.value = this.game.difficulty || 'normal';
+      }
+      const savedSound = localStorage.getItem('fair_hearts_sound');
+      if (savedSound !== null) {
+        this.sound.enabled = (savedSound === 'true');
+        if (this.soundCheckbox) this.soundCheckbox.checked = this.sound.enabled;
+      }
+
       this.difficultySelect.addEventListener('change', (e) => {
-        this.game.difficulty = e.target.value;
+        this.game.setDifficulty(e.target.value);
         this.showToast(`AI Difficulty set to: ${e.target.value.toUpperCase()}`);
       });
 
-      // Speed change
+      // Synchronize speed setting from saved game data
+      const savedSpeed = localStorage.getItem('fair_hearts_speed') || 'normal';
+      if (this.speedSelect) {
+        this.speedSelect.value = savedSpeed;
+        if (savedSpeed === 'fast') this.game.botDelayMs = 650;
+        else if (savedSpeed === 'relaxed') this.game.botDelayMs = 1800;
+        else this.game.botDelayMs = 1250;
+      }
+
       this.speedSelect.addEventListener('change', (e) => {
         const val = e.target.value;
-        if (val === 'fast') this.game.botDelayMs = 280;
-        else if (val === 'relaxed') this.game.botDelayMs = 1100;
-        else this.game.botDelayMs = 600;
+        localStorage.setItem('fair_hearts_speed', val);
+        if (val === 'fast') {
+          this.game.botDelayMs = 650;
+          this.showToast('Speed: Fast (0.65s per move)');
+        } else if (val === 'relaxed') {
+          this.game.botDelayMs = 1800;
+          this.showToast('Speed: Relaxed (1.8s per move)');
+        } else {
+          this.game.botDelayMs = 1250;
+          this.showToast('Speed: Normal (1.25s per move)');
+        }
       });
 
-      // Sound toggle
       this.soundCheckbox.addEventListener('change', (e) => {
         this.sound.enabled = e.target.checked;
+        localStorage.setItem('fair_hearts_sound', e.target.checked);
       });
+
+      if (this.btnResetMatch) {
+        this.btnResetMatch.addEventListener('click', () => this.handleResetRequest());
+      }
+      if (this.btnResetRecords) {
+        this.btnResetRecords.addEventListener('click', () => this.handleResetRequest());
+      }
+
+      const vibeBadge = document.getElementById('badge-vibe-coding');
+      if (vibeBadge) {
+        vibeBadge.addEventListener('click', () => {
+          this.showToast('🚀 100% Original Idea • Vibe Coded with AI!');
+          this.sound.playChime();
+        });
+      }
     }
 
     // ==========================================
-    // RENDERING HELPERS
+    // VECTOR SVG CARD RENDERING
     // ==========================================
     createCardDom(card, isFaceDown = false) {
       const el = document.createElement('div');
-      el.className = `card suit-${card.suit}`;
-      el.dataset.id = card.id;
+      el.className = 'card';
+      el.dataset.id = card ? card.id : '';
 
-      if (isFaceDown) {
+      const img = document.createElement('img');
+      img.className = 'card-img';
+      img.draggable = false;
+
+      if (isFaceDown || !card) {
         el.classList.add('face-down');
-        return el;
+        img.src = 'assets/cards/back.svg';
+        img.alt = 'Card Back';
+      } else {
+        img.src = card.svgPath;
+        img.alt = card.fullName;
+
+        // Visual point badge helper
+        if (card.isQueenOfSpades) {
+          const badge = document.createElement('span');
+          badge.className = 'card-point-badge badge-queen';
+          badge.textContent = '13 pts';
+          el.appendChild(badge);
+        } else if (card.isHeart) {
+          const badge = document.createElement('span');
+          badge.className = 'card-point-badge badge-heart';
+          badge.textContent = '1 pt';
+          el.appendChild(badge);
+        }
       }
 
-      if (card.isQueenOfSpades) el.classList.add('is-queen-spades');
-      if (card.isHeart) el.classList.add('is-heart');
-
-      // Top-Left Corner
-      const cornerTL = document.createElement('div');
-      cornerTL.className = 'card-corner top-left';
-      cornerTL.innerHTML = `<span class="card-rank">${card.rankName}</span><span class="card-suit-small">${card.symbol}</span>`;
-
-      // Center
-      const center = document.createElement('div');
-      center.className = 'card-center';
-      center.innerHTML = `<span class="suit-symbol">${card.symbol}</span>`;
-
-      // Bottom-Right Corner (Rotated 180deg)
-      const cornerBR = document.createElement('div');
-      cornerBR.className = 'card-corner bottom-right';
-      cornerBR.innerHTML = `<span class="card-rank">${card.rankName}</span><span class="card-suit-small">${card.symbol}</span>`;
-
-      el.appendChild(cornerTL);
-      el.appendChild(center);
-      el.appendChild(cornerBR);
-
+      el.appendChild(img);
       return el;
     }
 
@@ -363,17 +432,58 @@
       this.humanHandEl.innerHTML = '';
       if (!hand || !hand.cards) return;
 
-      hand.cards.forEach((card, index) => {
-        const cardEl = this.createCardDom(card);
-        cardEl.classList.add('interactive', 'anim-deal');
-        cardEl.style.zIndex = index + 1;
+      const totalCards = hand.cards.length;
+      // Staggered two-tier layout (matching mobile card game UI: e.g. 6 top, 7 bottom)
+      if (totalCards > 6) {
+        const splitIndex = Math.floor(totalCards / 2);
+        const topCards = hand.cards.slice(0, splitIndex);
+        const bottomCards = hand.cards.slice(splitIndex);
 
-        cardEl.addEventListener('click', () => {
-          this.handleHumanCardClick(card);
+        const rowTop = document.createElement('div');
+        rowTop.className = 'hand-row row-top';
+
+        const rowBottom = document.createElement('div');
+        rowBottom.className = 'hand-row row-bottom';
+
+        topCards.forEach((card, index) => {
+          const cardEl = this.createCardDom(card);
+          cardEl.classList.add('anim-deal', 'in-row-top');
+          cardEl.style.zIndex = index + 1;
+          cardEl.addEventListener('click', () => {
+            this.handleHumanCardClick(card);
+          });
+          rowTop.appendChild(cardEl);
         });
 
-        this.humanHandEl.appendChild(cardEl);
-      });
+        bottomCards.forEach((card, index) => {
+          const cardEl = this.createCardDom(card);
+          cardEl.classList.add('anim-deal', 'in-row-bottom');
+          cardEl.style.zIndex = index + 15;
+          cardEl.addEventListener('click', () => {
+            this.handleHumanCardClick(card);
+          });
+          rowBottom.appendChild(cardEl);
+        });
+
+        this.humanHandEl.appendChild(rowTop);
+        this.humanHandEl.appendChild(rowBottom);
+      } else {
+        // 6 or fewer cards - centered single row
+        const rowSingle = document.createElement('div');
+        rowSingle.className = 'hand-row row-single';
+
+        hand.cards.forEach((card, index) => {
+          const cardEl = this.createCardDom(card);
+          cardEl.classList.add('anim-deal', 'in-row-bottom');
+          cardEl.style.zIndex = index + 1;
+          cardEl.addEventListener('click', () => {
+            this.handleHumanCardClick(card);
+          });
+          rowSingle.appendChild(cardEl);
+        });
+
+        this.humanHandEl.appendChild(rowSingle);
+      }
 
       this.updateCardLegalStates();
       this.updateHumanCardSelectionClasses();
@@ -381,7 +491,6 @@
 
     handleHumanCardClick(card) {
       if (this.game.passPhaseActive) {
-        // Toggle selection for passing
         if (this.selectedCardsForPass.has(card.id)) {
           this.selectedCardsForPass.delete(card.id);
         } else {
@@ -389,32 +498,53 @@
             this.selectedCardsForPass.add(card.id);
           }
         }
+        this.sound.playCardSnap();
         this.updateHumanCardSelectionClasses();
         this.updatePassButtonState();
         return;
       }
 
-      // Playing phase
       if (this.game.isWaitingForHuman) {
-        this.game.humanPlayCard(card.id);
+        const played = this.game.humanPlayCard(card.id);
+        if (played) {
+          this.updateCardLegalStates();
+        }
       }
     }
 
     updateCardLegalStates() {
       const cardEls = this.humanHandEl.querySelectorAll('.card');
-      const isMyTurn = (this.game.currentTurn === 0 && this.game.isWaitingForHuman && !this.game.passPhaseActive);
+      const isMyTurn = (this.game.currentTurn === 0 && !this.game.passPhaseActive);
+
+      // Fallback calculation if legal plays array is not cached
+      let legalList = this.currentLegalPlays;
+      if (isMyTurn && (!legalList || legalList.length === 0) && this.game.hands[0]) {
+        legalList = Hearts.getLegalPlays(
+          this.game.hands[0],
+          this.game.currentTrick,
+          this.game.gameMemory.heartsBroken,
+          this.game.trickNumber === 1
+        );
+        this.currentLegalPlays = legalList;
+      }
 
       cardEls.forEach(el => {
         const id = el.dataset.id;
-        el.classList.remove('is-legal', 'is-illegal');
+        el.classList.remove('is-legal', 'is-illegal', 'waiting-turn');
 
-        if (isMyTurn) {
-          const isLegal = this.currentLegalPlays.some(c => c.id === id);
+        if (this.game.passPhaseActive) {
+          // In passing phase, all cards are selectable
+          el.classList.remove('is-illegal', 'waiting-turn');
+        } else if (isMyTurn && legalList && legalList.length > 0) {
+          const isLegal = legalList.some(c => c.id === id);
           if (isLegal) {
             el.classList.add('is-legal');
           } else {
-            el.classList.add('is-illegal');
+            el.classList.add('is-illegal'); // GRAYED OUT & DARKENED
           }
+        } else {
+          // Waiting for other bots to play
+          el.classList.add('waiting-turn');
         }
       });
     }
@@ -433,7 +563,9 @@
     updatePassButtonState() {
       const count = this.selectedCardsForPass.size;
       this.btnConfirmPass.disabled = (count !== 3);
-      this.btnConfirmPass.textContent = count === 3 ? 'Confirm Pass (3)' : `Select 3 cards (${count}/3)`;
+      this.btnConfirmPass.innerHTML = count === 3
+        ? '<span class="btn-text-desktop">Confirm Pass (3)</span><span class="btn-text-mobile">Pass (3)</span>'
+        : `<span class="btn-text-desktop">Select 3 cards (${count}/3)</span><span class="btn-text-mobile">Pass (${count}/3)</span>`;
     }
 
     updateBotCardCounts(hands) {
@@ -447,10 +579,13 @@
     highlightActiveTurn(playerIndex) {
       for (let p = 0; p < 4; p++) {
         if (this.playerTags[p]) {
+          const station = this.playerTags[p].closest('.player-station');
           if (p === playerIndex) {
             this.playerTags[p].classList.add('is-active-turn');
+            if (station) station.classList.add('is-active-turn');
           } else {
             this.playerTags[p].classList.remove('is-active-turn');
+            if (station) station.classList.remove('is-active-turn');
           }
         }
       }
@@ -461,7 +596,7 @@
       if (!slot) return;
       slot.innerHTML = '';
       const cardEl = this.createCardDom(card);
-      cardEl.classList.add('anim-played');
+      cardEl.classList.add('anim-played', `toss-from-${playerIndex}`);
       slot.appendChild(cardEl);
     }
 
@@ -471,6 +606,17 @@
         if (slot && slot.firstElementChild) {
           slot.firstElementChild.className = `card sweep-to-${winnerIndex}`;
         }
+      }
+
+      // Celebratory bounce & gold pulse on winner player tag
+      const winnerTag = this.playerTags[winnerIndex];
+      if (winnerTag) {
+        winnerTag.classList.remove('winner-tag-bounce');
+        void winnerTag.offsetWidth; // Force CSS reflow to re-trigger animation
+        winnerTag.classList.add('winner-tag-bounce');
+        setTimeout(() => {
+          if (winnerTag) winnerTag.classList.remove('winner-tag-bounce');
+        }, 750);
       }
 
       setTimeout(() => {
@@ -483,9 +629,11 @@
 
     updateScoreboard() {
       const scores = this.game.scorer.cumulativeScores;
+      const roundPts = this.game.currentRoundPoints || [0, 0, 0, 0];
       let minScore = Math.min(...scores);
 
       for (let p = 0; p < 4; p++) {
+        // Update bottom persistent footer scoreboard
         if (this.scoreboardPoints[p]) {
           this.scoreboardPoints[p].textContent = scores[p];
           const cell = this.scoreboardPoints[p].closest('.score-cell');
@@ -494,7 +642,46 @@
             else cell.classList.remove('is-leader');
           }
         }
+
+        // Update player station score badge
+        if (this.playerScoreBadges && this.playerScoreBadges[p]) {
+          const matchScore = scores[p] || 0;
+          const penalty = roundPts[p] || 0;
+          if (penalty > 0) {
+            this.playerScoreBadges[p].innerHTML = `${matchScore} pts <span class="round-penalty-tag">+${penalty}</span>`;
+          } else {
+            this.playerScoreBadges[p].textContent = `${matchScore} pts`;
+          }
+        }
       }
+
+      this.updateStatsModal();
+    }
+
+    updateStatsModal() {
+      const stats = this.game.stats || {};
+      if (this.statMatchesPlayed) this.statMatchesPlayed.textContent = stats.matchesPlayed || 0;
+      if (this.statMatchesWon) this.statMatchesWon.textContent = stats.matchesWon || 0;
+      if (this.statRoundsPlayed) this.statRoundsPlayed.textContent = stats.roundsPlayed || 0;
+      if (this.statBestScore) {
+        this.statBestScore.textContent = (stats.bestScore !== null && stats.bestScore !== undefined)
+          ? `${stats.bestScore} pts`
+          : '--';
+      }
+    }
+
+    handleResetRequest() {
+      const confirmed = window.confirm("Reset match scores and saved lifetime records? This will start a fresh match.");
+      if (!confirmed) return;
+
+      if (this.settingsModal) this.settingsModal.classList.remove('open');
+      if (this.roundModal) this.roundModal.classList.remove('open');
+      if (this.gameOverModal) this.gameOverModal.classList.remove('open');
+      this.resetTableForNewRound();
+      this.game.resetMemory();
+      this.updateScoreboard();
+      this.showToast('🧹 Match scores and records reset!');
+      this.sound.playShuffle();
     }
 
     showToast(message) {
@@ -503,7 +690,7 @@
       clearTimeout(this.toastTimeout);
       this.toastTimeout = setTimeout(() => {
         this.tableToast.classList.remove('visible');
-      }, 2400);
+      }, 2200);
     }
 
     resetTableForNewRound() {

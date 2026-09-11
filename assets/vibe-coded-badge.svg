@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 42" width="160" height="42">
+  <defs>
+    <filter id="shadow" x="-5%" y="-10%" width="115%" height="130%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000000" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+  <!-- Outer sticker border -->
+  <rect x="2" y="2" width="156" height="38" rx="5" fill="#ffffff" filter="url(#shadow)"/>
+  <!-- Supreme style red box -->
+  <rect x="4" y="4" width="152" height="34" rx="4" fill="#e11d48"/>
+  <!-- Bold condensed white text -->
+  <text x="80" y="27" font-family="-apple-system, BlinkMacSystemFont, 'Impact', 'Arial Black', sans-serif" font-size="20" font-weight="900" font-style="italic" fill="#ffffff" text-anchor="middle" letter-spacing="1.2">VIBE CODED</text>
+</svg>

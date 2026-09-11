@@ -1,8 +1,8 @@
 /**
- * sw.js - Service Worker for 100% offline gameplay in Fair Hearts
+ * sw.js - Service Worker with Cache-on-Fetch for 100% offline gameplay in Fair Hearts
  */
-const CACHE_NAME = 'fair-hearts-v1';
-const ASSETS_TO_CACHE = [
+const CACHE_NAME = 'fair-hearts-v6';
+const CORE_ASSETS = [
   './',
   './index.html',
   './manifest.json',
@@ -23,7 +23,7 @@ const ASSETS_TO_CACHE = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE);
+      return cache.addAll(CORE_ASSETS);
     })
   );
   self.skipWaiting();
@@ -47,7 +47,19 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
-      return cachedResponse || fetch(event.request).catch(() => {
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+      return fetch(event.request).then((networkResponse) => {
+        if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
+          return networkResponse;
+        }
+        const responseToCache = networkResponse.clone();
+        caches.open(CACHE_NAME).then((cache) => {
+          cache.put(event.request, responseToCache);
+        });
+        return networkResponse;
+      }).catch(() => {
         return caches.match('./index.html');
       });
     })

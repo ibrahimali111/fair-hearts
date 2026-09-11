@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://ibrahimali111.github.io/fair-hearts/sitemap.xml

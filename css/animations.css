@@ -3,7 +3,7 @@
 @keyframes dealSlideIn {
   from {
     opacity: 0;
-    transform: scale(0.4) translateY(60px);
+    transform: scale(0.5) translateY(40px);
   }
   to {
     opacity: 1;
@@ -12,73 +12,161 @@
 }
 
 .anim-deal {
-  animation: dealSlideIn 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  animation: dealSlideIn 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 
-/* Play Card Drop Animation into Trick Center */
-@keyframes playCardCenter {
+/* ========================================================
+   CARD PLAY TOSS ANIMATIONS FROM PLAYER STATIONS TO TABLE
+   ======================================================== */
+
+@keyframes tossFromSouth {
   0% {
-    opacity: 0;
-    transform: scale(0.8) translateY(20px);
+    opacity: 0.2;
+    transform: translateY(150px) scale(0.6) rotate(4deg);
   }
-  60% {
-    transform: scale(1.08) translateY(-4px);
+  75% {
+    transform: translateY(-4px) scale(1.04) rotate(-1deg);
   }
   100% {
     opacity: 1;
-    transform: scale(1) translateY(0);
+    transform: translateY(0) scale(1) rotate(0deg);
   }
 }
 
-.anim-played {
-  animation: playCardCenter 0.28s cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
+@keyframes tossFromWest {
+  0% {
+    opacity: 0.2;
+    transform: translateX(-180px) scale(0.6) rotate(-8deg);
+  }
+  75% {
+    transform: translateX(4px) scale(1.04) rotate(1deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1) rotate(0deg);
+  }
 }
 
-/* Trick Sweep Animations toward specific player seat */
+@keyframes tossFromNorth {
+  0% {
+    opacity: 0.2;
+    transform: translateY(-140px) scale(0.6) rotate(-4deg);
+  }
+  75% {
+    transform: translateY(4px) scale(1.04) rotate(1deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotate(0deg);
+  }
+}
+
+@keyframes tossFromEast {
+  0% {
+    opacity: 0.2;
+    transform: translateX(180px) scale(0.6) rotate(8deg);
+  }
+  75% {
+    transform: translateX(-4px) scale(1.04) rotate(-1deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1) rotate(0deg);
+  }
+}
+
+.toss-from-0 { animation: tossFromSouth 0.32s cubic-bezier(0.18, 0.9, 0.28, 1) forwards !important; }
+.toss-from-1 { animation: tossFromWest 0.32s cubic-bezier(0.18, 0.9, 0.28, 1) forwards !important; }
+.toss-from-2 { animation: tossFromNorth 0.32s cubic-bezier(0.18, 0.9, 0.28, 1) forwards !important; }
+.toss-from-3 { animation: tossFromEast 0.32s cubic-bezier(0.18, 0.9, 0.28, 1) forwards !important; }
+
+/* ========================================================
+   TRICK SWIPE COLLECTION ANIMATIONS TO WINNING PLAYER SEAT
+   ======================================================== */
+
 @keyframes sweepToSouth {
-  to {
+  0% {
+    opacity: 1;
+    transform: scale(1) translate(0, 0);
+  }
+  30% {
+    transform: scale(0.9) translate(0, 10px);
+  }
+  100% {
     opacity: 0;
-    transform: translateY(160px) scale(0.3);
+    transform: scale(0.2) translate(0, 190px);
   }
 }
 
 @keyframes sweepToWest {
-  to {
+  0% {
+    opacity: 1;
+    transform: scale(1) translate(0, 0);
+  }
+  30% {
+    transform: scale(0.9) translate(-10px, 0);
+  }
+  100% {
     opacity: 0;
-    transform: translateX(-160px) scale(0.3);
+    transform: scale(0.2) translate(-230px, 0);
   }
 }
 
 @keyframes sweepToNorth {
-  to {
+  0% {
+    opacity: 1;
+    transform: scale(1) translate(0, 0);
+  }
+  30% {
+    transform: scale(0.9) translate(0, -10px);
+  }
+  100% {
     opacity: 0;
-    transform: translateY(-160px) scale(0.3);
+    transform: scale(0.2) translate(0, -180px);
   }
 }
 
 @keyframes sweepToEast {
-  to {
+  0% {
+    opacity: 1;
+    transform: scale(1) translate(0, 0);
+  }
+  30% {
+    transform: scale(0.9) translate(10px, 0);
+  }
+  100% {
     opacity: 0;
-    transform: translateX(160px) scale(0.3);
+    transform: scale(0.2) translate(230px, 0);
   }
 }
 
-.sweep-to-0 { animation: sweepToSouth 0.45s ease-in forwards; }
-.sweep-to-1 { animation: sweepToWest 0.45s ease-in forwards; }
-.sweep-to-2 { animation: sweepToNorth 0.45s ease-in forwards; }
-.sweep-to-3 { animation: sweepToEast 0.45s ease-in forwards; }
+.sweep-to-0 { animation: sweepToSouth 0.5s cubic-bezier(0.35, 0, 0.2, 1) forwards !important; }
+.sweep-to-1 { animation: sweepToWest 0.5s cubic-bezier(0.35, 0, 0.2, 1) forwards !important; }
+.sweep-to-2 { animation: sweepToNorth 0.5s cubic-bezier(0.35, 0, 0.2, 1) forwards !important; }
+.sweep-to-3 { animation: sweepToEast 0.5s cubic-bezier(0.35, 0, 0.2, 1) forwards !important; }
+
+/* Winner Player Tag Celebratory Pulse */
+@keyframes winnerTagPulse {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.18); box-shadow: 0 0 24px var(--gold); }
+  100% { transform: scale(1); }
+}
+
+.winner-tag-bounce {
+  animation: winnerTagPulse 0.65s ease-out !important;
+}
 
 /* Active Turn Pulse Indicator */
 @keyframes activePulse {
   0%, 100% {
-    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.6);
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.6);
   }
   50% {
-    box-shadow: 0 0 0 12px rgba(34, 197, 94, 0);
+    box-shadow: 0 0 0 8px rgba(245, 158, 11, 0);
   }
 }
 
-.is-active-turn {
+.player-tag.is-active-turn {
   animation: activePulse 1.8s infinite;
 }
 

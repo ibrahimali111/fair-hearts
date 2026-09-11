@@ -19,13 +19,22 @@
       this.gameMemory = new Hearts.GameMemory();
       
       this.difficulty = 'normal'; // 'easy', 'normal', 'hard'
-      this.botDelayMs = 600;       // Configurable bot thinking delay
+      this.botDelayMs = 1250;      // Configurable bot thinking delay (1.25s default)
       this.currentTurn = 0;        // Player index (0: Human South, 1: West, 2: North, 3: East)
       this.roundNumber = 0;
       this.trickNumber = 0;
+      this.currentRoundPoints = [0, 0, 0, 0]; // Points taken in current round tricks
       this.isWaitingForHuman = false;
       this.humanPassedCards = [];
       this.passPhaseActive = false;
+
+      // Lifetime player statistics
+      this.stats = {
+        matchesPlayed: 0,
+        matchesWon: 0,
+        roundsPlayed: 0,
+        bestScore: null
+      };
 
       // Event listeners
       this.callbacks = {
@@ -71,11 +80,14 @@
       this.difficulty = difficulty;
       this.scorer.reset();
       this.roundNumber = 0;
+      this.currentRoundPoints = [0, 0, 0, 0];
+      this.saveToStorage();
       this.startNewRound();
     }
 
     startNewRound() {
       this.roundNumber++;
+      this.currentRoundPoints = [0, 0, 0, 0];
       this.trickNumber = 0;
       this.completedTricks = [];
       this.gameMemory = new Hearts.GameMemory();
@@ -83,21 +95,23 @@
       this.isWaitingForHuman = false;
       this.humanPassedCards = [];
 
+      this.saveToStorage();
+
+      const passDir = this.getPassDirection();
+      this.passPhaseActive = (passDir !== 'none');
+
       // Deal 13 cards to each player
       this.hands = this.deck.deal();
       this.trigger('onHandUpdated', this.hands);
 
-      const passDir = this.getPassDirection();
-      if (passDir !== 'none') {
+      if (this.passPhaseActive) {
         // Start passing phase
-        this.passPhaseActive = true;
         this.trigger('onPassPhaseStart', {
           direction: passDir,
           roundNumber: this.roundNumber
         });
       } else {
         // "Keep" round - no passing
-        this.passPhaseActive = false;
         this.trigger('onMessage', 'Round 4: No passing! Hold your cards.');
         this.startFirstTrick();
       }
@@ -182,18 +196,21 @@
         isFirstTrick
       );
 
-      this.trigger('onTurnChange', {
-        player: p,
-        trickNumber: this.trickNumber,
-        legalPlays: (p === 0) ? legalPlays : []
-      });
-
       if (p === 0) {
         // Human's turn: wait for UI click
         this.isWaitingForHuman = true;
       } else {
         // Bot's turn
         this.isWaitingForHuman = false;
+      }
+
+      this.trigger('onTurnChange', {
+        player: p,
+        trickNumber: this.trickNumber,
+        legalPlays: (p === 0) ? legalPlays : []
+      });
+
+      if (p !== 0) {
         setTimeout(() => {
           this.executeBotTurn(p, legalPlays, isFirstTrick);
         }, this.botDelayMs);
@@ -201,6 +218,10 @@
     }
 
     executeBotTurn(p, legalPlays, isFirstTrick) {
+      if (!this.hands[p] || this.hands[p].count === 0) return;
+      if (!this.currentTrick || this.currentTrick.isComplete) return;
+      if (this.currentTurn !== p) return;
+
       let chosenCard;
       if (this.difficulty === 'easy') {
         chosenCard = Hearts.chooseCardEasy(
@@ -217,7 +238,14 @@
         );
       }
 
-      this.playCard(p, chosenCard);
+      if (!chosenCard) {
+        const fallbacks = Hearts.getLegalPlays(this.hands[p], this.currentTrick, this.gameMemory.heartsBroken, isFirstTrick);
+        chosenCard = fallbacks[0] || this.hands[p].cards[0];
+      }
+
+      if (chosenCard) {
+        this.playCard(p, chosenCard);
+      }
     }
 
     humanPlayCard(cardId) {
@@ -243,6 +271,9 @@
     }
 
     playCard(playerIndex, card) {
+      if (!card || !this.hands[playerIndex]) return;
+      if (!this.currentTrick || this.currentTrick.isComplete) return;
+
       // Remove from player's hand
       this.hands[playerIndex].removeCard(card);
 
@@ -278,13 +309,15 @@
     finishTrick() {
       const winner = this.currentTrick.winner;
       const points = this.currentTrick.points;
+      this.currentRoundPoints[winner] = (this.currentRoundPoints[winner] || 0) + points;
       this.gameMemory.recordTrickComplete(this.currentTrick);
       this.completedTricks.push(this.currentTrick);
 
       this.trigger('onTrickComplete', {
         trick: this.currentTrick,
         winner: winner,
-        points: points
+        points: points,
+        currentRoundPoints: [...this.currentRoundPoints]
       });
 
       if (this.completedTricks.length === 13) {
@@ -305,12 +338,103 @@
 
     finishRound() {
       const summary = this.scorer.calculateRoundScores(this.completedTricks);
-      this.trigger('onRoundComplete', summary);
+      this.currentRoundPoints = [0, 0, 0, 0];
+      this.stats.roundsPlayed = (this.stats.roundsPlayed || 0) + 1;
 
       if (summary.isGameOver) {
+        this.stats.matchesPlayed = (this.stats.matchesPlayed || 0) + 1;
         const winner = this.scorer.getWinner();
+        if (winner && winner.winner === 0) {
+          this.stats.matchesWon = (this.stats.matchesWon || 0) + 1;
+        }
+        const southScore = this.scorer.cumulativeScores[0];
+        if (this.stats.bestScore === null || southScore < this.stats.bestScore) {
+          this.stats.bestScore = southScore;
+        }
+        this.saveToStorage();
+        this.trigger('onRoundComplete', summary);
         this.trigger('onGameOver', winner);
+      } else {
+        this.saveToStorage();
+        this.trigger('onRoundComplete', summary);
       }
+    }
+
+    // ==========================================
+    // PERSISTENT STORAGE & MEMORY MANAGEMENT
+    // ==========================================
+    saveToStorage() {
+      try {
+        const payload = {
+          cumulativeScores: this.scorer.cumulativeScores,
+          roundNumber: this.roundNumber,
+          roundHistory: this.scorer.roundHistory,
+          difficulty: this.difficulty,
+          stats: this.stats
+        };
+        localStorage.setItem('fair_hearts_save_v1', JSON.stringify(payload));
+      } catch (e) {
+        console.warn('Fair Hearts storage save failed:', e);
+      }
+    }
+
+    loadFromStorage() {
+      try {
+        const raw = localStorage.getItem('fair_hearts_save_v1');
+        if (!raw) return false;
+        const data = JSON.parse(raw);
+        if (data && Array.isArray(data.cumulativeScores) && data.cumulativeScores.length === 4) {
+          this.scorer.cumulativeScores = [...data.cumulativeScores];
+          this.scorer.roundHistory = data.roundHistory || [];
+          this.roundNumber = data.roundNumber || 0;
+          this.difficulty = data.difficulty || 'normal';
+          if (data.stats) this.stats = { ...this.stats, ...data.stats };
+          return true;
+        }
+      } catch (e) {
+        console.warn('Fair Hearts storage load failed:', e);
+      }
+      return false;
+    }
+
+    initialize() {
+      const hasSave = this.loadFromStorage();
+      if (hasSave && (this.scorer.cumulativeScores.some(s => s > 0) || this.roundNumber > 1)) {
+        if (this.scorer.checkGameOver()) {
+          // Prior match ended at 100+ points; start fresh match but keep lifetime stats
+          this.startNewGame(this.difficulty);
+        } else {
+          // Resume ongoing match without losing match scores:
+          // Adjust roundNumber down by 1 so startNewRound() increments to current round
+          this.roundNumber = Math.max(0, this.roundNumber - 1);
+          this.startNewRound();
+        }
+      } else {
+        this.startNewGame(this.difficulty || 'normal');
+      }
+    }
+
+    resetMemory() {
+      try {
+        localStorage.removeItem('fair_hearts_save_v1');
+      } catch (e) {}
+      this.stats = {
+        matchesPlayed: 0,
+        matchesWon: 0,
+        roundsPlayed: 0,
+        bestScore: null
+      };
+      this.scorer.reset();
+      this.roundNumber = 0;
+      this.currentRoundPoints = [0, 0, 0, 0];
+      this.completedTricks = [];
+      this.saveToStorage();
+      this.startNewRound();
+    }
+
+    setDifficulty(difficulty) {
+      this.difficulty = difficulty;
+      this.saveToStorage();
     }
   }
 

@@ -2,19 +2,62 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Fair Hearts — Unbiased AI Card Game</title>
-  <meta name="description" content="Open-source, mathematically fair Hearts card game with zero bias against the player and 3 difficulty levels.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Fair Hearts — Unbiased Hearts Card Game | Play Online Free</title>
+  <meta name="description" content="Play Hearts online free in your browser with zero bot cheating. Mathematically fair, open-source Hearts card game with no bias against the human player. 3 AI difficulty levels (Casual, Strategic, Monte Carlo PIMC). PWA for Mobile & PC.">
+  <meta name="keywords" content="hearts card game, play hearts online, fair hearts, unbiased hearts, hearts without cheating bots, unrigged hearts, hearts game online free, play hearts in browser, open source hearts, hearts pwa, monte carlo hearts ai, card game no ads">
+  <meta name="author" content="Ibrahim Ali (ibrahimali111)">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://ibrahimali111.github.io/fair-hearts/">
   <meta name="theme-color" content="#0e3d23">
+
+  <!-- Open Graph / Social SEO -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://ibrahimali111.github.io/fair-hearts/">
+  <meta property="og:title" content="Fair Hearts — Unbiased Hearts Card Game">
+  <meta property="og:description" content="The only Hearts card game mathematically guaranteed to have zero bias against the human player. Play instantly in your browser — zero install, free forever.">
+  <meta property="og:site_name" content="Fair Hearts">
+
+  <!-- Twitter Card SEO -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="https://ibrahimali111.github.io/fair-hearts/">
+  <meta name="twitter:title" content="Fair Hearts — Unbiased AI Card Game">
+  <meta name="twitter:description" content="Tired of rigged Hearts apps where bots collude against you? Play Fair Hearts online for free with 100% mathematically fair AI.">
+
+  <!-- Schema.org JSON-LD for Google Game & AI Search Engines -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "VideoGame",
+    "name": "Fair Hearts",
+    "alternateName": "Unbiased Hearts Card Game",
+    "description": "An open-source, mathematically fair Hearts card game with zero bias against the human player. Features 3 AI difficulty tiers including Monte Carlo simulation.",
+    "url": "https://ibrahimali111.github.io/fair-hearts/",
+    "genre": ["Card Game", "Trick Taking", "Strategy Game"],
+    "playMode": "SinglePlayer",
+    "applicationCategory": "Game",
+    "operatingSystem": "Web, Android, iOS, Windows, macOS, Linux",
+    "author": {
+      "@type": "Person",
+      "name": "Ibrahim Ali",
+      "url": "https://github.com/ibrahimali111"
+    },
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    }
+  }
+  </script>
   
   <!-- PWA Manifest & Icons -->
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>♥</text></svg>">
 
   <!-- Stylesheets -->
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="css/cards.css">
-  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/style.css?v=8">
+  <link rel="stylesheet" href="css/cards.css?v=8">
+  <link rel="stylesheet" href="css/animations.css?v=8">
 </head>
 <body>
 
@@ -25,6 +68,9 @@
         <span class="brand-icon">♥</span>
         <h1>Fair Hearts</h1>
         <span class="brand-badge">Zero Bias AI</span>
+        <div class="vibe-coding-sticker" id="badge-vibe-coding" title="💡 100% Original Idea • 🤖 Vibe Coded with AI">
+          <span class="sticker-inner">VIBE CODED</span>
+        </div>
       </div>
 
       <div class="match-status-bar">
@@ -34,11 +80,14 @@
       </div>
 
       <div class="header-actions">
+        <button class="btn-icon" id="btn-reset-match" title="Reset match scores and start fresh">
+          <span>🔄</span> <span class="btn-label">Reset</span>
+        </button>
         <button class="btn-icon" id="btn-proof" title="How our AI is provably fair">
-          <span>⚖️</span> Fairness Proof
+          <span>⚖️</span> <span class="btn-label">Fairness Proof</span>
         </button>
         <button class="btn-icon" id="btn-settings" title="Game Settings">
-          <span>⚙️</span> Settings
+          <span>⚙️</span> <span class="btn-label">Settings</span>
         </button>
       </div>
     </header>
@@ -46,7 +95,7 @@
     <!-- Main Casino Green Felt Game Table -->
     <main class="game-table">
       <!-- NORTH (Bot 2) -->
-      <section class="player-station station-north">
+      <section class="player-station station-north" id="station-north">
         <div class="player-tag" id="tag-north">
           <div class="player-avatar">🤖</div>
           <span class="player-name">North (Bot 2)</span>
@@ -56,10 +105,11 @@
           <div class="card face-down"></div>
         </div>
         <span class="bot-card-count" id="count-north">13 cards</span>
+        <div class="station-turn-arrow arrow-north" title="North's turn">▲</div>
       </section>
 
       <!-- WEST (Bot 1) -->
-      <section class="player-station station-west">
+      <section class="player-station station-west" id="station-west">
         <div class="player-tag" id="tag-west">
           <div class="player-avatar">🤖</div>
           <span class="player-name">West (Bot 1)</span>
@@ -69,10 +119,12 @@
           <div class="card face-down"></div>
         </div>
         <span class="bot-card-count" id="count-west">13 cards</span>
+        <div class="station-turn-arrow arrow-west" title="West's turn">◀</div>
       </section>
 
       <!-- EAST (Bot 3) -->
-      <section class="player-station station-east">
+      <section class="player-station station-east" id="station-east">
+        <div class="station-turn-arrow arrow-east" title="East's turn">▶</div>
         <div class="player-tag" id="tag-east">
           <div class="player-avatar">🤖</div>
           <span class="player-name">East (Bot 3)</span>
@@ -86,6 +138,23 @@
 
       <!-- CENTER TRICK ARENA -->
       <section class="trick-arena">
+        <!-- Floating Card Passing Banner: In Table Center (Never covers cards!) -->
+        <div class="pass-control-panel" id="pass-control-panel">
+          <div class="pass-instruction" id="pass-instruction">
+            <span class="pass-dir-icon" id="pass-dir-icon">◀</span> Select 3 cards to pass
+          </div>
+          <div class="pass-buttons">
+            <button class="btn-pass-auto" id="btn-auto-pass">
+              <span class="btn-text-desktop">Auto-Pick Safe Cards</span>
+              <span class="btn-text-mobile">Auto-Pick</span>
+            </button>
+            <button class="btn-pass-confirm" id="btn-confirm-pass" disabled>
+              <span class="btn-text-desktop">Select 3 cards (0/3)</span>
+              <span class="btn-text-mobile">Pass (0/3)</span>
+            </button>
+          </div>
+        </div>
+
         <div class="trick-surface">
           <div class="trick-slot slot-north" id="slot-north"></div>
           <div class="trick-slot slot-west" id="slot-west"></div>
@@ -96,25 +165,19 @@
       </section>
 
       <!-- SOUTH (Human Player) -->
-      <section class="player-station station-south">
-        <div class="player-tag" id="tag-south">
-          <div class="player-avatar">👤</div>
-          <span class="player-name">You (South)</span>
-          <span class="player-score-badge" id="badge-score-south">0 pts</span>
-        </div>
-
-        <!-- Floating Card Passing Banner -->
-        <div class="pass-control-panel" id="pass-control-panel">
-          <div class="pass-instruction" id="pass-instruction">Select 3 cards to pass</div>
-          <div class="pass-buttons">
-            <button class="btn-pass-auto" id="btn-auto-pass">Auto-Pick Safe Cards</button>
-            <button class="btn-pass-confirm" id="btn-confirm-pass" disabled>Select 3 cards (0/3)</button>
-          </div>
-        </div>
+      <section class="player-station station-south" id="station-south">
+        <!-- Turn arrow indicator pointing down toward South's cards -->
+        <div class="station-turn-arrow arrow-south" title="Your turn">▼</div>
 
         <!-- Human Hand Cards Container -->
         <div class="human-hand-container">
           <div class="human-hand" id="human-hand"></div>
+        </div>
+
+        <div class="player-tag" id="tag-south">
+          <div class="player-avatar">👤</div>
+          <span class="player-name">You (South)</span>
+          <span class="player-score-badge" id="badge-score-south">0 pts</span>
         </div>
       </section>
     </main>
@@ -207,15 +270,38 @@
         <div>
           <label style="font-weight: 700; display: block; margin-bottom: 6px;">Game Speed</label>
           <select id="select-speed" style="width: 100%; padding: 8px; border-radius: 6px; background: #1e293b; color: white; border: 1px solid #475569;">
-            <option value="fast">Fast (300ms bot moves)</option>
-            <option value="normal" selected>Normal (600ms bot moves)</option>
-            <option value="relaxed">Relaxed (1100ms bot moves)</option>
+            <option value="fast">Fast (0.65s bot moves)</option>
+            <option value="normal" selected>Normal (1.25s bot moves — recommended)</option>
+            <option value="relaxed">Relaxed (1.8s bot moves)</option>
           </select>
+          <small style="color: #94a3b8; display: block; margin-top: 4px;">Allows you to clearly see your card land and watch bots make their plays.</small>
         </div>
 
         <div style="display: flex; align-items: center; gap: 10px;">
           <input type="checkbox" id="checkbox-sound" checked style="width: 18px; height: 18px;">
           <label for="checkbox-sound" style="font-weight: 600; cursor: pointer;">Enable Sound Effects (Synthesized Audio)</label>
+        </div>
+
+        <div style="border-top: 1px solid rgba(255, 255, 255, 0.12); padding-top: 12px; margin-top: 2px;">
+          <label style="font-weight: 700; display: block; margin-bottom: 8px;">📊 Match Memory & Career Records</label>
+          <div style="background: rgba(0, 0, 0, 0.28); border: 1px solid rgba(255, 255, 255, 0.08); padding: 12px 14px; border-radius: 8px; font-size: 13px; line-height: 1.8; color: #cbd5e1;">
+            <div style="display: flex; justify-content: space-between;">
+              <span>Matches Completed:</span> <strong id="stat-matches-played">0</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span>Matches Won (1st Place):</span> <strong id="stat-matches-won" style="color: #4ade80;">0</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span>Total Rounds Played:</span> <strong id="stat-rounds-played">0</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span>Personal Best (Lowest Total):</span> <strong id="stat-best-score" style="color: var(--gold);">--</strong>
+            </div>
+          </div>
+          <button id="btn-reset-records" style="margin-top: 12px; width: 100%; padding: 10px; background: rgba(239, 68, 68, 0.16); border: 1px solid rgba(239, 68, 68, 0.45); color: #fca5a5; border-radius: 6px; font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.2s ease;">
+            🗑️ Reset Match Scores & Saved Records
+          </button>
+          <small style="color: #94a3b8; display: block; margin-top: 6px; font-size: 11px;">Scores and records automatically persist across page refreshes until you reset them.</small>
         </div>
       </div>
       <button class="btn-primary-action" onclick="document.getElementById('modal-settings').classList.remove('open')">Close</button>
@@ -246,22 +332,22 @@
   </div>
 
   <!-- Application Scripts in Dependency Order -->
-  <script src="js/deck.js"></script>
-  <script src="js/trick.js"></script>
-  <script src="js/scoring.js"></script>
-  <script src="js/ai-common.js"></script>
-  <script src="js/ai-easy.js"></script>
-  <script src="js/ai-normal.js"></script>
-  <script src="js/ai-hard.js"></script>
-  <script src="js/game.js"></script>
-  <script src="js/ui.js"></script>
+  <script src="js/deck.js?v=8"></script>
+  <script src="js/trick.js?v=8"></script>
+  <script src="js/scoring.js?v=8"></script>
+  <script src="js/ai-common.js?v=8"></script>
+  <script src="js/ai-easy.js?v=8"></script>
+  <script src="js/ai-normal.js?v=8"></script>
+  <script src="js/ai-hard.js?v=8"></script>
+  <script src="js/game.js?v=8"></script>
+  <script src="js/ui.js?v=8"></script>
 
   <!-- Game Bootstrap -->
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const game = new Hearts.GameController();
       const ui = new Hearts.UIManager(game);
-      game.startNewGame('normal');
+      game.initialize();
 
       // Register PWA Service Worker if supported
       if ('serviceWorker' in navigator) {
